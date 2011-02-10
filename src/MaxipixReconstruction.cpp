@@ -523,6 +523,7 @@ Data MaxipixReconstruction::process(Data &aData)
 	{
 	  Buffer *aNewBuffer = new Buffer(aReturnData.size());
 	  aReturnData.setBuffer(aNewBuffer);
+	  aNewBuffer->unref();
 	}
       switch(mType)
 	{
