@@ -21,7 +21,7 @@
 ############################################################################
 import os.path
 import gc
-import types
+import types, time
 
 from Lima.Core import *
 from Lima import Espia
@@ -176,6 +176,7 @@ class MpxAcq:
         # By callback the CtAcquisition will be refreshed too.
         self.__hwInt.updateValidRanges()
         
+        print "\n\nEnd of configuration, Maxipix is ready !"
 
     @DEB_MEMBER_FUNCT
     def loadDetConfig(self, name):
@@ -205,7 +206,7 @@ class MpxAcq:
 	self.__pacq.setShutterMode(Maxipix.PriamAcq.SEQUENCE)
 	self.__pacq.setIntervalTime(0.)
 	self.__pacq.setShutterTime(0.)
-
+     
 	self.applyChipFsr(0)
 
 	if self.__mdet.needReconstruction():
@@ -244,6 +245,24 @@ class MpxAcq:
 	    scfg= self.chipCfg.getMpxString(chipid)
 	    print "Loading Chip Config #%d ..."%(chipid)
 	    self.__pacq.setChipCfg(port, scfg)
+
+       # After chip(s) configuration a chip pixel value is needed and
+        # can only be done by reading the chips, this can be done with
+        # a dummy acquisition
+        print "Reseting chip(s) pixels ..."
+        exptime = self.__pacq.getExposureTime()
+        nbframes = self.__pacq.getNbFrames()
+        self.__pacq.setExposureTime(0.01)
+        self.__pacq.setNbFrames(1)
+        self.__pacq.startAcq()
+        time.sleep(0.1)
+        if self.__pacq.getStatus() != DetIdle:
+            self.__pacq.stopAcq()
+            raise MpxError("Cannot reset chip(s) after config.")
+	self.__pacq.stopAcq()
+        self.__pacq.setExposureTime(exptime)
+        self.__pacq.setNbFrames(nbframes)
+
 	     
     @DEB_MEMBER_FUNCT
     def applyChipFsr(self, chipid):

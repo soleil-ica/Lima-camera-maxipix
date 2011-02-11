@@ -292,7 +292,9 @@ void PriamAcq::setChipCfg(short port,const string &cfg)
     string out;
     enableSerial(port);
     m_priam_serial.writeMatrix(cfg);
-    m_priam_serial.readMatrix(out);
+    // due to espia serial timeout we do not serialread here (for reseting chip infact)
+    // but instead the chip(s) will be acquired by the calling function
+    //m_priam_serial.readMatrix(out);
 }
 
 void PriamAcq::setTimeUnit(TimeUnit unit)
