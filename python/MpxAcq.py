@@ -249,7 +249,7 @@ class MpxAcq:
        # After chip(s) configuration a chip pixel value is needed and
         # can only be done by reading the chips, this can be done with
         # a dummy acquisition
-        print "Reseting chip(s) pixels ..."
+        print "Resetting chip(s) pixels ..."
         exptime = self.__pacq.getExposureTime()
         nbframes = self.__pacq.getNbFrames()
         self.__pacq.setExposureTime(0.01)
