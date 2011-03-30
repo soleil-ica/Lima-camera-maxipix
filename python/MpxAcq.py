@@ -195,7 +195,8 @@ class MpxAcq:
 
 	self.priamPorts= detConfig.getPriamPorts()
 	self.mpxDacs= detConfig.getDacs()
-
+        self.mpxDacs.setPriamPars(self.__pacq, self.priamPorts)
+        
 	print "Setting PRIAM configuration ..."
 	self.__pacq.setup(self.mpxCfg["version"], self.mpxCfg["polarity"],
 			  self.mpxCfg["frequency"], self.mpxDacs.getFsrString(1))
@@ -206,8 +207,9 @@ class MpxAcq:
 	self.__pacq.setShutterMode(Maxipix.PriamAcq.SEQUENCE)
 	self.__pacq.setIntervalTime(0.)
 	self.__pacq.setShutterTime(0.)
-     
-	self.applyChipFsr(0)
+
+        # Ask Dacs obj to apply the new FSR registers (DACS values)
+	self.mpxDacs.applyChipDacs(0)
 
 	if self.__mdet.needReconstruction():
 	    print "Setting image reconstruction ..."
@@ -264,19 +266,6 @@ class MpxAcq:
         self.__pacq.setNbFrames(nbframes)
 
 	     
-    @DEB_MEMBER_FUNCT
-    def applyChipFsr(self, chipid):
-	if chipid==0:
-	    for idx in range(self.mpxCfg["nchip"]):
-		sfsr= self.mpxDacs.getFsrString(idx+1)
-	        print "Loading Chip FSR #%d ..."%(idx+1)
-		self.__pacq.setChipFsr(self.priamPorts[idx], sfsr)
-	else:
-	    port= self.__getPriamPort(chipid)
-	    sfsr= self.mpxDacs.getFsrString(chipid)
-	    print "Loading Chip FSR #%d ..."%(chipid)
-	    self.__pacq.setChipFsr(port, sfsr)
-
     def __getPriamPort(self, chipid):
 	if chipid <= 0 or chipid > self.mpxCfg["nchip"]:
             raise MpxError("<%d> is not a valid chipID"%chipid)

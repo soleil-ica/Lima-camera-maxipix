@@ -242,6 +242,9 @@ class MpxChipDacs:
 	for (key, val) in dacs.items():
 	    self.__setValue(key, val)
 
+    def getListKeys(self):
+        return  getMpxFsrDef(self.version).listKeys(0)
+    
     def __setValue(self, name, value):
 	lower= string.lower(name)
 	if lower not in getMpxFsrDef(self.version).listKeys(0):
@@ -289,7 +292,9 @@ class MpxDacs:
 	self.version= mpxVersion(version)
 	self.nchip= nchip
 	self.reset()
-
+        self.__pacq = None
+        self.__priamPorts = None
+        
     def reset(self):
 	self.__dacs= []
 	self.__thlnoise= []
@@ -308,18 +313,43 @@ class MpxDacs:
 	        raise MpxError("Invalid chipid <%s>. Range is [1,%d]"%(chipid, self.nchip+1))
 	    return [ chipid-1 ]
 
+    def setPriamPars(self, priamAcq, priamPorts):
+        self.__pacq = priamAcq; self.__priamPorts = priamPorts
+        
+    def applyChipDacs(self, chipid):
+        if self.__pacq == None or self.__priamPorts == None:
+            raise MpxError("Call first setPriamPars() first !")
+        
+	if chipid==0:
+	    for idx in range(self.nchip):
+		sfsr= self.getFsrString(idx+1)
+	        print "Loading Chip FSR #%d ..."%(idx+1)
+		self.__pacq.setChipFsr(self.__priamPorts[idx], sfsr)
+	else:
+	    port= self.__priamPorts[chipid-1]
+	    sfsr= self.getFsrString(chipid)
+	    print "Loading Chip FSR #%d ..."%(chipid)
+	    self.__pacq.setChipFsr(port, sfsr)
+
     def getFsrString(self, chipid):
 	idx= self.__getChipIdx(chipid)
 	return self.__dacs[idx[0]].getFsrString()
 
     def setThlNoise(self, chipid, value):
-	if chipid==0:
+
+        # save the current mean-thl (chip1 is the reference) to reapply
+        # after thlnoise setting
+	thl= self.getOneDac(1, "thl")
+		
+        if chipid==0:
 	    for idx in range(self.nchip):
 		self.__thlnoise[idx]= value[idx]
 	else:
 	    for idx in self.__getChipIdx(chipid):
 	        self.__thlnoise[idx]= value
-
+        # force now recalculation of thlnoise offsets                
+        self.setThl(thl)
+        
     def getThlNoise(self, chipid):
 	if chipid == 0:
 	    return self.__thlnoise
@@ -327,12 +357,16 @@ class MpxDacs:
 	    idx= self.__getChipIdx(chipid)
 	    return self.__thlnoise[idx[0]]
 
+
     def setECalibration(self, e0thl, estep):
 	self.__e0thl= e0thl
 	self.__estep= estep
 
     def getECalibration(self):
 	return (self.__e0thl, self.__estep)
+
+    def getListKeys(self):
+        return self.__dacs[0].getListKeys()
 
     def setThl(self, value):
 	for idx in range(self.nchip):
