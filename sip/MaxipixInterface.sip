@@ -88,8 +88,7 @@ class BufferCtrlObj : HwBufferCtrlObj
 class SyncCtrlObj : HwSyncCtrlObj
 {
   public:
-    SyncCtrlObj(Espia::Acq& acq, Maxipix::PriamAcq& priam, 
-		Maxipix::BufferCtrlObj& buffer_mgr);
+    SyncCtrlObj(Espia::Acq& acq, Maxipix::PriamAcq& priam);
     virtual ~SyncCtrlObj();
 
     virtual bool checkTrigMode(TrigMode trig_mode);

@@ -113,7 +113,7 @@ class SyncCtrlObj : public HwSyncCtrlObj
     DEB_CLASS_NAMESPC(DebModCamera, "SyncCtrlObj", "Maxipix");
 
   public:
-    SyncCtrlObj(Espia::Acq& acq, PriamAcq& priam, BufferCtrlObj& buffer_mgr);
+    SyncCtrlObj(Espia::Acq& acq, PriamAcq& priam);
     virtual ~SyncCtrlObj();
 
     virtual bool checkTrigMode(TrigMode trig_mode);

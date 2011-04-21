@@ -196,8 +196,8 @@ void BufferCtrlObj::unregisterFrameCallback(HwFrameCallback& frame_cb)
 
 
 
-SyncCtrlObj::SyncCtrlObj(Espia::Acq& acq, PriamAcq& priam, BufferCtrlObj& buffer_ctrl)
-	:HwSyncCtrlObj(buffer_ctrl), 
+SyncCtrlObj::SyncCtrlObj(Espia::Acq& acq, PriamAcq& priam)
+	:HwSyncCtrlObj(), 
 	 m_acq(acq), 
 	 m_priam(priam)
 {
@@ -435,7 +435,7 @@ Interface::Interface(Espia::Acq& acq, BufferCtrlMgr& buffer_mgr,
                      PriamAcq& priam, MaxipixDet& det)
         : m_acq(acq), m_buffer_mgr(buffer_mgr),
           m_priam(priam), m_acq_end_cb(priam), m_det_info(det), 
-	  m_buffer(buffer_mgr), m_sync(acq, m_priam, m_buffer),
+	  m_buffer(buffer_mgr), m_sync(acq, m_priam),
 	  m_shutter(priam), m_prepare_flag(false)
 {
         DEB_CONSTRUCTOR();
