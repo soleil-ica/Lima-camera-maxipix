@@ -330,6 +330,10 @@ class MpxDacs:
 	    sfsr= self.getFsrString(chipid)
 	    print "Loading Chip FSR #%d ..."%(chipid)
 	    self.__pacq.setChipFsr(port, sfsr)
+        # need to wait for FSR transfer at least for the last
+        # chip otherwise an immediate exposure could make image
+        # in bad shape
+        time.sleep(0.1)
 
     def getFsrString(self, chipid):
 	idx= self.__getChipIdx(chipid)
