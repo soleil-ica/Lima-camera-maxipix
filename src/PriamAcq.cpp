@@ -30,7 +30,7 @@ PriamAcq::PriamAcq(PriamSerial& priam_serial)
 	:m_priam_serial(priam_serial),
 	 m_setup(0), m_version(MaxipixDet::DUMMY), 
 	 m_chip_fsr0(""), m_fo_fast(false),
-	 m_expo_time(-1.), m_int_time(-1.),
+	 m_expo_time(-1.), m_int_time(-1.), m_min_it(0),
  	 m_shut_level(HIGH_RISE), m_shut_mode(FRAME),
 	 m_ready_level(HIGH_RISE), m_ready_mode(EXPOSURE_READOUT),
 	 m_gate_level(HIGH_RISE), m_gate_mode(INACTIVE),
