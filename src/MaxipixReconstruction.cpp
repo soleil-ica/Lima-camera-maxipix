@@ -518,7 +518,7 @@ Data MaxipixReconstruction::process(Data &aData)
 
   if(mModel == M_5x1)
     {
-      aReturnData.dimensions.push_back(MAXIPIX_NB_COLUMN * 5 + 4 * mXSpace);
+      aReturnData.dimensions[0] = MAXIPIX_NB_COLUMN * 5 + 4 * mXSpace;
       if(!_processingInPlaceFlag)
 	{
 	  Buffer *aNewBuffer = new Buffer(aReturnData.size());
@@ -541,8 +541,8 @@ Data MaxipixReconstruction::process(Data &aData)
     }
   else			// Model 2x2
     {
-      aReturnData.dimensions.push_back(MAXIPIX_NB_COLUMN * 2 + mXSpace);
-      aReturnData.dimensions.push_back(MAXIPIX_NB_LINE * 2 + mYSpace);
+      aReturnData.dimensions[0] = MAXIPIX_NB_COLUMN * 2 + mXSpace;
+      aReturnData.dimensions[1] = MAXIPIX_NB_LINE * 2 + mYSpace;
 
       Buffer *aNewBuffer = new Buffer(aReturnData.size());
       switch(mType)
