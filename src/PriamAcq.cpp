@@ -30,7 +30,7 @@ PriamAcq::PriamAcq(PriamSerial& priam_serial)
 	:m_priam_serial(priam_serial),
 	 m_setup(0), m_version(MaxipixDet::DUMMY), 
 	 m_chip_fsr0(""), m_fo_fast(false),
-	 m_expo_time(-1.), m_int_time(-1.), m_min_it(0),
+	 m_min_it(0), m_expo_time(-1.), m_int_time(-1.),
  	 m_shut_level(HIGH_RISE), m_shut_mode(FRAME),
 	 m_ready_level(HIGH_RISE), m_ready_mode(EXPOSURE_READOUT),
 	 m_gate_level(HIGH_RISE), m_gate_mode(INACTIVE),
@@ -746,7 +746,7 @@ void PriamAcq::startAcq()
     txtime= m_fo_fast ? 560. : 700.;
     txtime /= m_time_us;
     minit = m_min_it / m_time_us;
-    if ((m_int_time-minit+m_expo_time)<(txtime*nbchip))
+    if (m_nb_frame != 1 && (m_int_time-minit+m_expo_time)<(txtime*nbchip))
 	THROW_HW_ERROR(Error) << "Timing too fast (interval+expo < transfer): "
 			      << DEB_VAR5(m_int_time, minit, m_expo_time, 
 					  txtime, nbchip);
