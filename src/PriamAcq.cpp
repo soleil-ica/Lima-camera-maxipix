@@ -390,7 +390,9 @@ void PriamAcq::getExposureTimeRange(double& min_expo, double& max_expo) const
 {
     DEB_MEMBER_FUNCT();
 
-    min_expo= 300 / m_time_us;
+    // priam accepts 1us as min value, we're at the limit
+    min_expo= 1 / m_time_us;
+    //min_expo= 300 / m_time_us;
     max_expo= (double)0x3ff * 1000000. / m_time_us;
     DEB_RETURN() << DEB_VAR2(min_expo, max_expo);
 }
