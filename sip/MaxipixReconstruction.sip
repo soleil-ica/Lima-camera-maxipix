@@ -26,6 +26,7 @@ namespace Maxipix
   {
 %TypeHeaderCode
 #include "MaxipixReconstruction.h"
+#include "Exceptions.h"
 using namespace lima;
 %End
   public:
