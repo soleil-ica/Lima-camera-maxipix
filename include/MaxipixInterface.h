@@ -188,6 +188,7 @@ class Interface : public HwInterface
 	virtual void getStatus(StatusType& status);
 	virtual int getNbHwAcquiredFrames();
 	void updateValidRanges();
+        void setConfigFlag(bool flag);
 
  private:
 	class AcqEndCallback : public Espia::AcqEndCallback
@@ -216,6 +217,7 @@ class Interface : public HwInterface
 	SyncCtrlObj    m_sync;
 	ShutterCtrlObj m_shutter;
  	bool           m_prepare_flag;	
+        bool           m_config_flag; 
 };
 
 } // namespace Maxipix

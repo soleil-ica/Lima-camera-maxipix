@@ -436,7 +436,7 @@ Interface::Interface(Espia::Acq& acq, BufferCtrlMgr& buffer_mgr,
         : m_acq(acq), m_buffer_mgr(buffer_mgr),
           m_priam(priam), m_acq_end_cb(priam), m_det_info(det), 
 	  m_buffer(buffer_mgr), m_sync(acq, m_priam),
-	  m_shutter(priam), m_prepare_flag(false)
+	  m_shutter(priam), m_prepare_flag(false), m_config_flag(false)
 {
         DEB_CONSTRUCTOR();
 
@@ -535,15 +535,20 @@ void Interface::updateValidRanges()
 void Interface::getStatus(StatusType& status)
 {
         DEB_MEMBER_FUNCT();
-        Espia::Acq::Status acq;
-        m_acq.getStatus(acq);
-        status.acq = acq.running ? AcqRunning : AcqReady;
-
-        static const DetStatus det_mask = 
+       	static const DetStatus det_mask = 
 		(DetWaitForTrigger | DetExposure | DetReadout);
+       	status.det_mask = det_mask;
+        if (!m_config_flag) {
+        	Espia::Acq::Status acq;
+        	m_acq.getStatus(acq);
+        	status.acq = acq.running ? AcqRunning : AcqReady;
 
-        status.det_mask = det_mask;
-	m_priam.getStatus(status.det);
+
+		m_priam.getStatus(status.det);
+        } else {
+		status.acq = AcqConfig;
+		status.det = DetIdle;
+	}
 
         DEB_RETURN() << DEB_VAR1(status);
 }
@@ -565,3 +570,8 @@ void Interface::AcqEndCallback::acqFinished(const HwFrameInfoType& /*finfo*/)
         m_priam.stopAcq();
 }
 
+
+void Interface::setConfigFlag(bool flag)
+{
+	m_config_flag = flag;
+}

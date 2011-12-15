@@ -22,6 +22,7 @@
 import os.path
 import gc
 import types, time
+import thread
 
 from Lima.Core import *
 from Lima import Espia
@@ -168,13 +169,20 @@ class MpxAcq:
         self.cfgPath= spath
 
     @DEB_MEMBER_FUNCT
-    def loadConfig(self, name):
-	self.loadDetConfig(name)
-	self.loadChipConfig(name)
-        # Need to inform afterward the hwInterface about new ranges
-        # which are calculated once the configs have been loaded.
-        # By callback the CtAcquisition will be refreshed too.
-        self.__hwInt.updateValidRanges()
+    def loadConfig(self,name) :
+	thread.start_new_thread(MpxAcq._loadConfig,(self,self.__hwInt,name))
+
+    def _loadConfig(cnt,hwInterface, name):
+	try:
+		hwInterface.setConfigFlag(True)	
+		cnt.loadDetConfig(name)
+		cnt.loadChipConfig(name)
+        	# Need to inform afterward the hwInterface about new ranges
+        	# which are calculated once the configs have been loaded.
+        	# By callback the CtAcquisition will be refreshed too.
+        	hwInterface.updateValidRanges()
+	finally:
+		hwInterface.setConfigFlag(False)
         
         print "\n\nEnd of configuration, Maxipix is ready !"
 
