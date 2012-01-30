@@ -64,7 +64,7 @@ class MaxipixDet : public HwMaxImageSizeCallbackGen
 
     // -- detector info
     void getImageSize(Size& size);
-    void getPixelSize(double& size);
+    void getPixelSize(double& x_size,double &y_size);
     void getImageType(ImageType& type);
 
     void getDetectorType(std::string& type);
