@@ -71,12 +71,10 @@ void DetInfoCtrlObj::setCurrImageType(ImageType image_type)
 			      << DEB_VAR2(image_type, valid_image_type);
 }
 
-void DetInfoCtrlObj::getPixelSize(double& x_size,double &y_size)
+void DetInfoCtrlObj::getPixelSize(double& x_size,double& y_size)
 {
     DEB_MEMBER_FUNCT();
-    double size;
-    m_det.getPixelSize(size);
-    x_size = y_size = size;
+    m_det.getPixelSize(x_size, y_size);
 }
 
 void DetInfoCtrlObj::getDetectorType(std::string& type)

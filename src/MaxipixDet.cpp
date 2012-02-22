@@ -80,9 +80,9 @@ void MaxipixDet::getImageSize(Size& size)
     size= m_size;
 }
 
-void MaxipixDet::getPixelSize(double& size)
+void MaxipixDet::getPixelSize(double& x_size,double& y_size)
 {
-    size= PixelSize;
+    x_size = y_size = PixelSize;
 }
 
 void MaxipixDet::getImageType(ImageType& type)
