@@ -49,7 +49,7 @@ class MaxipixDet : public HwMaxImageSizeCallbackGen
     };
 
     static const int ChipSize= 256*256;
-    static const double PixelSize= 55.0;
+    static const double PixelSize= 55e-6;
     static const int MaxChips= 5;
 
     MaxipixDet();
@@ -64,7 +64,7 @@ class MaxipixDet : public HwMaxImageSizeCallbackGen
 
     // -- detector info
     void getImageSize(Size& size);
-    void getPixelSize(double& size);
+    void getPixelSize(double& x_size, double& y_size);
     void getImageType(ImageType& type);
 
     void getDetectorType(std::string& type);
