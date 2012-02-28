@@ -53,7 +53,7 @@ class DetInfoCtrlObj : public HwDetInfoCtrlObj
     virtual void getCurrImageType(ImageType& image_type);
     virtual void setCurrImageType(ImageType image_type);
 
-    virtual void getPixelSize(double& size);
+    virtual void getPixelSize(double& x_size, double& y_size);
     virtual void getDetectorType(std::string& type);
     virtual void getDetectorModel(std::string& model);
 
