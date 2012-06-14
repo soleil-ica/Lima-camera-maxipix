@@ -132,6 +132,7 @@ class SyncCtrlObj : public HwSyncCtrlObj
     virtual void getValidRanges(ValidRangesType& valid_ranges);
 
   private:
+    bool _checkTrigMode(TrigMode trig_modei,bool with_acq_mode = false);
     Espia::Acq& m_acq;
     PriamAcq& m_priam;
 };

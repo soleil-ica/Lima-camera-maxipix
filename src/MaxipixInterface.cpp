@@ -212,6 +212,11 @@ SyncCtrlObj::~SyncCtrlObj()
 
 bool SyncCtrlObj::checkTrigMode(TrigMode trig_mode)
 {
+  return _checkTrigMode(trig_mode);
+}
+
+bool SyncCtrlObj::_checkTrigMode(TrigMode trig_mode,bool with_acq_mode)
+{
     DEB_MEMBER_FUNCT();
 
     // Get the Acquisition mode, some trigger mode
@@ -229,10 +234,8 @@ bool SyncCtrlObj::checkTrigMode(TrigMode trig_mode)
       break;
     case ExtTrigMult:
     case ExtGate:
-      valid_mode = (acqMode != Accumulation);
+      valid_mode = with_acq_mode ? (acqMode != Accumulation) : true;
       break;
-    case ExtStartStop:
-      // Priam doesn not implement the start-stop mode, only Gate
     default:
 	valid_mode = false;
     }
@@ -242,8 +245,9 @@ bool SyncCtrlObj::checkTrigMode(TrigMode trig_mode)
 void SyncCtrlObj::setTrigMode(TrigMode trig_mode)
 {
     DEB_MEMBER_FUNCT();
-    if (!checkTrigMode(trig_mode))
-	THROW_HW_ERROR(InvalidValue) << "Invalid " << DEB_VAR1(trig_mode);
+    if (!_checkTrigMode(trig_mode,true))
+	THROW_HW_ERROR(InvalidValue) << "Invalid in accumulation" << 
+	  DEB_VAR1(trig_mode);
     m_priam.setTriggerMode(trig_mode);
 }
 
