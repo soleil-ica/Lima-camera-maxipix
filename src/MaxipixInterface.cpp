@@ -246,7 +246,7 @@ void SyncCtrlObj::setTrigMode(TrigMode trig_mode)
 {
     DEB_MEMBER_FUNCT();
     if (!_checkTrigMode(trig_mode,true))
-	THROW_HW_ERROR(InvalidValue) << "Invalid in accumulation" << 
+	THROW_HW_ERROR(InvalidValue) << "Invalid in accumulation mode: " << 
 	  DEB_VAR1(trig_mode);
     m_priam.setTriggerMode(trig_mode);
 }
