@@ -200,7 +200,8 @@ class MpxAcq:
 	self.__mdet.setVersion(self.mpxCfg["version"])
 	self.__mdet.setNbChip(self.mpxCfg["xchip"], self.mpxCfg["ychip"])
 	self.__mdet.setPixelGap(self.mpxCfg["xgap"], self.mpxCfg["ygap"])
-
+        self.__mdet.setChipsRotation(self.mpxCfg["rotations"])
+        
 	self.priamPorts= detConfig.getPriamPorts()
 	self.mpxDacs= detConfig.getDacs()
         self.mpxDacs.setPriamPars(self.__pacq, self.priamPorts)
@@ -219,21 +220,11 @@ class MpxAcq:
         # Ask Dacs obj to apply the new FSR registers (DACS values)
 	self.mpxDacs.applyChipDacs(0)
 
-	if self.__mdet.needReconstruction():
-	    print "Setting image reconstruction ..."
-	    model= self.__mdet.getReconstruction()
-	    if self.__reconstruct is not None:
-	    	self.__ct.setReconstructionTask(None)
-		del self.__reconstruct
-	    self.__reconstruct= Maxipix.MaxipixReconstruction()
-	    self.__reconstruct.setModel(model)
-	    self.setFillMode(Maxipix.MaxipixReconstruction.RAW)	    
-	    self.__reconstruct.setXnYGapSpace(self.mpxCfg["xgap"], 
-						self.mpxCfg["ygap"])
-	    self.__ct.setReconstructionTask(self.__reconstruct)
-	else:
-	    self.__ct.setReconstructionTask(None)
-
+        self.__reconstruct = self.__mdet.getReconstruction()
+        if self.__reconstruct is not None:
+            self.setFillMode(Maxipix.MaxipixReconstruction.RAW)
+        self.__ct.setReconstructionTask(self.__reconstruct)
+        
     @DEB_MEMBER_FUNCT
     def loadChipConfig(self, name):
 	self.chipCfg= MpxChipConfig.MpxPixelConfig(self.mpxCfg["version"], 

@@ -31,7 +31,7 @@ using namespace lima;
 %End
   public:
     enum Type {RAW,ZERO,DISPATCH,MEAN};
-    enum Model {M_2x2,M_5x1};
+    enum Model {M_2x2,M_5x1,M_FREE};
     explicit MaxipixReconstruction(Model = M_5x1,
 				   Type = RAW);
     MaxipixReconstruction(const Maxipix::MaxipixReconstruction&);
@@ -40,6 +40,7 @@ using namespace lima;
     void setType(Type);
     void setModel(Model);
     void setXnYGapSpace(int xSpace,int ySpace);
+    void setChipsRotation(const RotationModeList&);
     virtual Data process(Data &aData);
   };
 
