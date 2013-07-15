@@ -126,7 +126,16 @@ class MpxDetConfig:
 
 	self.mpxCfg["xgap"]= self.__getParamOptional(pars, "xgap", None, 0)
 	self.mpxCfg["ygap"]= self.__getParamOptional(pars, "ygap", None, 0)
-        
+
+        # set the per chip rotation in any, only valid for maxipix without gap reconstruction
+        if self.mpxCfg["xgap"] == 0 and self.mpxCfg["ygap"] ==0:
+            self.mpxCfg["rotations"]=[]
+            for idx in range(self.mpxCfg["nchip"]):
+                name= "rot_%d"%(idx+1)
+                self.mpxCfg[name]= self.__getParamOptional(pars, name, 
+                                                          MpxRotationTypes, 0)
+                self.mpxCfg["rotations"].append(MpxRotation[self.mpxCfg[name]])
+            
     def __parsePriamSection(self, cfg):
 	self.priamPorts= range(self.mpxCfg["nchip"])
 	if self.mpxCfg["xchip"]==2 and self.mpxCfg["ychip"]==2:

@@ -20,6 +20,8 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 ############################################################################
 from limamaxipix import Maxipix
+from Lima import Core
+
 import types
 
 MpxVersion= [	Maxipix.MaxipixDet.DUMMY,
@@ -32,6 +34,13 @@ MpxPolarity= [	Maxipix.MaxipixDet.NEGATIVE,
 		Maxipix.MaxipixDet.POSITIVE ]
 MpxPolarityTypes= ["NEGATIVE","POSITIVE"]
 
+MpxRotationTypes=[0,90,180,270]
+
+MpxRotation= {0: Core.Rotation_0,
+              90: Core.Rotation_90,
+              180: Core.Rotation_180,
+              270: Core.Rotation_270
+              }
 
 def mpxPolarity(polarity):
     if type(polarity)==types.StringType:

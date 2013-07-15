@@ -33,7 +33,8 @@ MaxipixDet::MaxipixDet()
 	  :m_xchip(0), m_ychip(0), 
 	   m_xgap(0), m_ygap(0),
 	   m_type(Bpp16), m_version(MXR2),
-           m_mis_cb_act(false)
+           m_mis_cb_act(false),
+	   m_no_reconstruction(false)
 {
     setNbChip(1, 1);
 }
@@ -64,6 +65,14 @@ void MaxipixDet::setPixelGap(int xgap, int ygap)
     	m_ygap= ygap;
 	_updateSize();
     }
+}
+
+void MaxipixDet::setChipsRotation(const std::list<RotationMode>& rotations)
+{
+  DEB_MEMBER_FUNCT();
+  DEB_PARAM() << DEB_VAR1(rotations.size());
+
+  m_rotations = rotations;
 }
 
 void MaxipixDet::_updateSize() {
@@ -112,26 +121,39 @@ void MaxipixDet::getDetectorModel(std::string& type)
     type= os.str();
 }
 
-bool MaxipixDet::needReconstruction()
+MaxipixReconstruction* MaxipixDet::getReconstruction()
 {
-    if (((m_xchip==2)&&(m_ychip==2)) || \
-	((m_xchip==5)&&(m_ychip==1))) {
-	    return true;
-    }
-    return false;
-}
+  if(!m_no_reconstruction)
+    {
+      MaxipixReconstruction *returnReconstruct = NULL;
+      if(!m_xgap && !m_ygap)
+	{
+	  if(!m_rotations.size()) // No reconstruction
+	    return NULL;
 
-void MaxipixDet::getReconstruction(MaxipixReconstruction::Model& model)
-{
-    if ((m_xchip==2)&&(m_ychip==2)) {
-	model= MaxipixReconstruction::M_2x2;
+	  returnReconstruct = new MaxipixReconstruction();
+	  returnReconstruct->setModel(MaxipixReconstruction::M_FREE);
+	  returnReconstruct->setChipsRotation(m_rotations);
+	}
+      else if ((m_xchip==2)&&(m_ychip==2)) 
+	{
+	  returnReconstruct = new MaxipixReconstruction();
+	  returnReconstruct->setModel(MaxipixReconstruction::M_2x2);
+	}
+      else if ((m_xchip==5)&&(m_ychip)) 
+	{
+	  returnReconstruct = new MaxipixReconstruction();
+	  returnReconstruct->setModel(MaxipixReconstruction::M_5x1);
+	}
+      else 
+	{
+	  throw LIMA_HW_EXC(Error, "Unknown reconstruction model");
+	}
+      returnReconstruct->setXnYGapSpace(m_xgap,m_ygap);
+      return returnReconstruct;
     }
-    else if ((m_xchip==5)&&(m_ychip)) {
-	model= MaxipixReconstruction::M_5x1;
-    }
-    else {
-	throw LIMA_HW_EXC(Error, "Unknown reconstruction model");
-    }
+  else
+    return NULL;
 }
 
 void MaxipixDet::setMaxImageSizeCallbackActive(bool cb_active)

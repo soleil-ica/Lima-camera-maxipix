@@ -61,7 +61,7 @@ class MaxipixDet : public HwMaxImageSizeCallbackGen
     // -- geometry
     void setNbChip(int xchip, int ychip);
     void setPixelGap(int xgap, int ygap);
-
+    void setChipsRotation(const std::list<RotationMode>&);
     // -- detector info
     void getImageSize(Size& size);
     void getPixelSize(double& x_size, double& y_size);
@@ -71,8 +71,8 @@ class MaxipixDet : public HwMaxImageSizeCallbackGen
     void getDetectorModel(std::string& model);
 
     // -- reconstruction
-    bool needReconstruction();
-    void getReconstruction(MaxipixReconstruction::Model& model);
+    void forceNoReconstruction(bool flag) { m_no_reconstruction = flag;}
+    MaxipixReconstruction* getReconstruction();
 
   protected:
     virtual void setMaxImageSizeCallbackActive(bool cb_active);
@@ -80,12 +80,14 @@ class MaxipixDet : public HwMaxImageSizeCallbackGen
   private:
     void _updateSize();
 
-    int m_xchip, m_ychip, m_nchip;
-    int m_xgap, m_ygap;
-    Size m_size;
-    ImageType m_type;
-    Version m_version;
-    bool m_mis_cb_act;
+    int 			m_xchip, m_ychip, m_nchip;
+    int 			m_xgap, m_ygap;
+    Size 			m_size;
+    ImageType 			m_type;
+    Version 			m_version;
+    bool 			m_mis_cb_act;
+    bool 			m_no_reconstruction;
+    std::list<RotationMode> 	m_rotations;
 };
 
 } // namespace Maxipix

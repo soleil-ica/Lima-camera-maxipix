@@ -25,6 +25,7 @@ namespace Maxipix {
 
 %TypeHeaderCode
 
+#include "MaxipixDet.h"
 #include "HwMaxImageSizeCallback.h"
 #include "MaxipixReconstruction.h"
 #include "Constants.h"
@@ -62,7 +63,7 @@ class MaxipixDet
     // -- geometry
     void setNbChip(int xchip, int ychip);
     void setPixelGap(int xgap, int ygap);
-
+    void setChipsRotation(const RotationModeList &rotation);
     // -- detector info
     void getImageSize(Size& size /Out/);
     void getPixelSize(double& x_size /Out/, double& y_size /Out/);
@@ -72,9 +73,8 @@ class MaxipixDet
     void getDetectorModel(std::string& model /Out/);
 
     // -- reconstruction
-    bool needReconstruction();
-    void getReconstruction(Maxipix::MaxipixReconstruction::Model& model /Out/);
-
+    void forceNoReconstruction(bool);
+    Maxipix::MaxipixReconstruction* getReconstruction();
 };
 
 };

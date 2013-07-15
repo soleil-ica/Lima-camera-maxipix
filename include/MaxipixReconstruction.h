@@ -23,6 +23,8 @@
 #define MAXIPIXRECONSTRUCTION_H
 
 #include "LinkTask.h"
+#include <list>
+#include "Constants.h"
 
 namespace lima
 {
@@ -34,7 +36,7 @@ namespace lima
     {
     public:
       enum Type {RAW,ZERO,DISPATCH,MEAN};
-      enum Model {M_2x2,M_5x1};
+      enum Model {M_2x2,M_5x1,M_FREE};
       explicit MaxipixReconstruction(Model = M_5x1,Type = RAW);
       MaxipixReconstruction(const MaxipixReconstruction&);
       ~MaxipixReconstruction();
@@ -42,12 +44,14 @@ namespace lima
       void setType(Type);
       void setModel(Model);
       void setXnYGapSpace(int xSpace,int ySpace);
+      void setChipsRotation(const RotationModeList&);
       virtual Data process(Data &aData);
     private:
       Type	mType;
       Model	mModel;
       int	mXSpace;
       int	mYSpace;
+      std::list<RotationMode> mChipsRotation;
     };
 
   } // namespace Maxipix

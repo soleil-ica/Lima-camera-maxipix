@@ -481,6 +481,68 @@ static inline void _mean_2x2(Data &src,Buffer *dst,int xSpace,int ySpace)
   
 }
 
+template<class type>
+static inline void _copy_chip(int i,int nb_chips,Data &aData,char* aBuffer)
+{
+  int aTotalWidth = nb_chips * MAXIPIX_NB_COLUMN;
+  type *src = (type*)aData.data() + i * MAXIPIX_NB_COLUMN;
+  type *dst = (type*)aBuffer;
+
+  for(int lineId = 0;lineId < MAXIPIX_NB_LINE;
+      ++lineId,dst += MAXIPIX_NB_COLUMN,src += aTotalWidth)
+    memcpy(dst,src,sizeof(type)*MAXIPIX_NB_COLUMN);
+}
+
+template<class type>
+static inline void _rot_chip_90(int chip_id,int nb_chips,
+				char *aBuffer,Data &dst_data)
+{
+  int aTotalWidth = (nb_chips - 1) * MAXIPIX_NB_COLUMN;
+  type *src = (type*)aBuffer;
+  type *dst = (type*)dst_data.data();
+  dst += chip_id * MAXIPIX_NB_COLUMN;
+  for(int lineId = 0;lineId < MAXIPIX_NB_LINE;++lineId,dst += aTotalWidth)
+    {
+      type *src_column = src + ((MAXIPIX_NB_LINE - 1) * MAXIPIX_NB_COLUMN) + lineId;
+      for(int colId = 0;colId < MAXIPIX_NB_COLUMN;++colId,++dst,src_column -= MAXIPIX_NB_COLUMN)
+	*dst = *src_column;
+    }
+}
+
+template<class type>
+static inline void _rot_chip_180(int chip_id,int nb_chips,
+				 char *aBuffer,Data &dst_data)
+{
+  int aTotalWidth = (nb_chips - 1) * MAXIPIX_NB_COLUMN;
+  type *src = (type*)aBuffer;
+  type *dst = (type*)dst_data.data();
+  dst += chip_id * MAXIPIX_NB_COLUMN;
+
+  for(int lineId = 0;lineId < MAXIPIX_NB_LINE;++lineId,dst += aTotalWidth)
+    {
+      type *src_line = src + (MAXIPIX_NB_LINE - lineId) * MAXIPIX_NB_COLUMN - 1;
+      for(int colId = 0;colId < MAXIPIX_NB_COLUMN;++colId,++dst,--src_line)
+	*dst = *src_line;
+    }  
+}
+
+template<class type>
+static inline void _rot_chip_270(int chip_id,int nb_chips,
+				 char *aBuffer,Data &dst_data)
+{
+  int aTotalWidth = (nb_chips - 1) * MAXIPIX_NB_COLUMN;
+  type *src = (type*)aBuffer;
+  type *dst = (type*)dst_data.data();
+  dst += chip_id * MAXIPIX_NB_COLUMN;
+  
+  for(int lineId = 0;lineId < MAXIPIX_NB_LINE;++lineId,dst += aTotalWidth)
+    {
+      type *src_column = src + (MAXIPIX_NB_COLUMN - 1) - lineId;
+      for(int colId = 0;colId < MAXIPIX_NB_COLUMN;++colId,++dst,src_column += MAXIPIX_NB_COLUMN)
+	*dst = *src_column;
+    }
+}
+
 MaxipixReconstruction::MaxipixReconstruction(MaxipixReconstruction::Model aModel,
 					     MaxipixReconstruction::Type aType) :
   mType(aType),mModel(aModel),mXSpace(4),mYSpace(4)
@@ -510,6 +572,10 @@ void MaxipixReconstruction::setXnYGapSpace(int xSpace,int ySpace)
   mXSpace = xSpace,mYSpace = ySpace;
 }
 
+void MaxipixReconstruction::setChipsRotation(const RotationModeList& rList)
+{
+  mChipsRotation = rList;
+}
 
 Data MaxipixReconstruction::process(Data &aData)
 {
@@ -539,7 +605,7 @@ Data MaxipixReconstruction::process(Data &aData)
 	  break;
 	}
     }
-  else			// Model 2x2
+  else if(mModel == M_2x2)			// Model 2x2
     {
       aReturnData.dimensions[0] = MAXIPIX_NB_COLUMN * 2 + mXSpace;
       aReturnData.dimensions[1] = MAXIPIX_NB_LINE * 2 + mYSpace;
@@ -584,6 +650,64 @@ Data MaxipixReconstruction::process(Data &aData)
       else
 	aReturnData.setBuffer(aNewBuffer);
       aNewBuffer->unref();
+    }
+  else				// M_FREE
+    {
+      if(_processingInPlaceFlag)
+	{
+	  char aBuffer[MAXIPIX_NB_LINE * MAXIPIX_NB_COLUMN * 4];
+
+	  std::list<RotationMode>::iterator cRot = mChipsRotation.begin();
+	  int nb_chips = mChipsRotation.size();
+	  for(int i = 0;cRot != mChipsRotation.end();++cRot,++i)
+	    {
+	      switch(*cRot)
+		{
+		case Rotation_90:
+		  if(aReturnData.depth() == 4)
+		    {
+		      _copy_chip<int>(i,nb_chips,aData,aBuffer);
+		      _rot_chip_90<int>(i,nb_chips,aBuffer,aData);
+		    }
+		  else
+		    {
+		      _copy_chip<unsigned short>(i,nb_chips,aData,aBuffer);
+		      _rot_chip_90<unsigned short>(i,nb_chips,aBuffer,aData);
+		    }
+		  break;
+		case Rotation_180:
+		  if(aReturnData.depth() == 4)
+		    {
+		      _copy_chip<int>(i,nb_chips,aData,aBuffer);
+		      _rot_chip_180<int>(i,nb_chips,aBuffer,aData);
+		    }
+		  else
+		    {
+		      _copy_chip<unsigned short>(i,nb_chips,aData,aBuffer);
+		      _rot_chip_180<unsigned short>(i,nb_chips,aBuffer,aData);
+		    }
+		  break;
+		case Rotation_270:
+		  if(aReturnData.depth() == 4)
+		    {
+		      _copy_chip<int>(i,nb_chips,aData,aBuffer);
+		      _rot_chip_270<int>(i,nb_chips,aBuffer,aData);
+		    }
+		  else
+		    {
+		      _copy_chip<unsigned short>(i,nb_chips,aData,aBuffer);
+		      _rot_chip_270<unsigned short>(i,nb_chips,aBuffer,aData);
+		    }
+		  break;
+		default:
+		  break; // Nothing to do
+		}
+	    }
+	}
+      else
+	{
+	  //@todo if needed
+	}
     }
 
   return aReturnData;
