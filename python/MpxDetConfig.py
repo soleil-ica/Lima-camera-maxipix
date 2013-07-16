@@ -128,8 +128,8 @@ class MpxDetConfig:
 	self.mpxCfg["ygap"]= self.__getParamOptional(pars, "ygap", None, 0)
 
         # set the per chip rotation in any, only valid for maxipix without gap reconstruction
+        self.mpxCfg["rotations"]=[]
         if self.mpxCfg["xgap"] == 0 and self.mpxCfg["ygap"] ==0:
-            self.mpxCfg["rotations"]=[]
             for idx in range(self.mpxCfg["nchip"]):
                 name= "rot_%d"%(idx+1)
                 self.mpxCfg[name]= self.__getParamOptional(pars, name, 
