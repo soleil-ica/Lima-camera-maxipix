@@ -220,7 +220,15 @@ void PriamAcq::_timeAdjust()
     tas= tap - 2;
     if (tas < 0) tas= 0;
 
-    if (m_firmware >= 2) {
+    if (m_version == MaxipixDet::TPX1) {
+    	if (m_osc_frequency < 50.0)
+		tap -=2;
+	if ((m_osc_frequency >=50.0) && (m_osc_frequency < 120.0))
+		tap -= 3;
+	if (m_osc_frequency >= 120.0)
+		tap-=4;		
+    }
+    else if (m_firmware >= 2) {
 	if (m_osc_frequency < 100.0)
 	    tap -= 1;
 	else if ((m_osc_frequency >= 100.0) && (m_osc_frequency < 120.0))
@@ -228,6 +236,8 @@ void PriamAcq::_timeAdjust()
 	else
 	    tap -= 3;
     }
+    
+    
     if (tap < 0) tap= 0;
 
     sval= string(1, (char)tap);
