@@ -431,6 +431,34 @@ void ShutterCtrlObj::getCloseTime(double& shut_close_time) const
 	m_priam.getShutterTime(shut_close_time);
 }
 
+
+/*******************************************************************
+ * \brief ReconstructionCtrlObj constructor
+ *******************************************************************/
+ReconstructionCtrlObj::ReconstructionCtrlObj(PriamAcq& priam):
+  m_reconstruct_task(NULL), m_priam(priam)
+{
+        DEB_MEMBER_FUNCT();
+}
+
+ReconstructionCtrlObj::~ReconstructionCtrlObj()
+{
+        DEB_DESTRUCTOR();
+	if (m_reconstruct_task)
+                m_reconstruct_task->unref();
+}
+void ReconstructionCtrlObj::setReconstructionTask(LinkTask* task)
+{
+       DEB_MEMBER_FUNCT();
+       DEB_PARAM() << DEB_VAR1(task);
+
+       if (task) task->ref();
+       if(m_reconstruct_task)
+               m_reconstruct_task->unref();
+       m_reconstruct_task = task;
+       reconstructionChange(task);
+}
+
 /*******************************************************************
  * \brief Hw Interface constructor
  *******************************************************************/
@@ -440,7 +468,9 @@ Interface::Interface(Espia::Acq& acq, BufferCtrlMgr& buffer_mgr,
         : m_acq(acq), m_buffer_mgr(buffer_mgr),
           m_priam(priam), m_acq_end_cb(priam), m_det_info(det), 
 	  m_buffer(buffer_mgr), m_sync(acq, m_priam),
-	  m_shutter(priam), m_prepare_flag(false), m_config_flag(false)
+	  m_shutter(priam), m_reconstruction(priam),
+	  m_prepare_flag(false), m_config_flag(false)
+	  
 {
         DEB_CONSTRUCTOR();
 
@@ -457,6 +487,9 @@ Interface::Interface(Espia::Acq& acq, BufferCtrlMgr& buffer_mgr,
 
 	HwShutterCtrlObj *shutter = &m_shutter;
 	m_cap_list.push_back(HwCap(shutter));
+
+	HwReconstructionCtrlObj *reconstruction = &m_reconstruction;
+	m_cap_list.push_back(HwCap(reconstruction));
 
         reset(SoftReset);
 }
@@ -578,4 +611,11 @@ void Interface::AcqEndCallback::acqFinished(const HwFrameInfoType& /*finfo*/)
 void Interface::setConfigFlag(bool flag)
 {
 	m_config_flag = flag;
+}
+
+
+void Interface::setReconstructionTask(LinkTask* task)
+{
+        DEB_MEMBER_FUNCT();
+        m_reconstruction.setReconstructionTask(task);
 }

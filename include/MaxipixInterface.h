@@ -23,6 +23,7 @@
 #define MPXINTERFACE_H
 
 #include "HwInterface.h"
+#include "HwReconstructionCtrlObj.h"
 #include "EspiaBufferMgr.h"
 #include "MaxipixDet.h"
 #include "PriamAcq.h"
@@ -139,12 +140,12 @@ class SyncCtrlObj : public HwSyncCtrlObj
 
 /*******************************************************************
  * \class ShutterCtrlObj
- * \brief Control object providing Frelon shutter interface
+ * \brief Control object providing shutter interface
  *******************************************************************/
 
 class ShutterCtrlObj : public HwShutterCtrlObj
 {
-	DEB_CLASS(DebModCamera, "ShutterCtrlObj");
+  DEB_CLASS_NAMESPC(DebModCamera, "ShutterCtrlObj", "Maxipix");
 
 public:
 	ShutterCtrlObj(PriamAcq& priam);
@@ -166,6 +167,25 @@ public:
  private:
 	PriamAcq& m_priam;
 };
+
+
+/*******************************************************************
+ * \class ReconstructionCtrlObj
+ * \brief Control object providing reconstruction interface
+ *******************************************************************/
+class ReconstructionCtrlObj : public HwReconstructionCtrlObj 
+{
+        DEB_CLASS_NAMESPC(DebModCamera, "ReconstructionCtrlObj", "Maxipix");
+public:
+        ReconstructionCtrlObj(PriamAcq& priam);	
+        ~ReconstructionCtrlObj();	
+	virtual LinkTask* getReconstructionTask() {return m_reconstruct_task;}	
+	void setReconstructionTask(LinkTask* task);
+ private :
+	LinkTask* m_reconstruct_task;
+	PriamAcq& m_priam;
+};
+
 
 /*******************************************************************
  * \class Interface
@@ -190,7 +210,8 @@ class Interface : public HwInterface
 	virtual int getNbHwAcquiredFrames();
 	void updateValidRanges();
         void setConfigFlag(bool flag);
-
+	
+	void setReconstructionTask(LinkTask*);
  private:
 	class AcqEndCallback : public Espia::AcqEndCallback
 	{
@@ -212,11 +233,13 @@ class Interface : public HwInterface
 	PriamAcq&	m_priam;
 	AcqEndCallback  m_acq_end_cb;
 
-	CapList m_cap_list;
-	DetInfoCtrlObj m_det_info;
-	BufferCtrlObj  m_buffer;
-	SyncCtrlObj    m_sync;
-	ShutterCtrlObj m_shutter;
+	CapList                m_cap_list;
+	DetInfoCtrlObj         m_det_info;
+	BufferCtrlObj          m_buffer;
+	SyncCtrlObj            m_sync;
+	ShutterCtrlObj         m_shutter;
+	ReconstructionCtrlObj  m_reconstruction;
+
  	bool           m_prepare_flag;	
         bool           m_config_flag; 
 };
