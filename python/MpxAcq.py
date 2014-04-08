@@ -38,15 +38,14 @@ class MpxAcq:
     DEB_CLASS(DebModApplication, "MpxAcq")
     
     @DEB_MEMBER_FUNCT
-    def __init__(self, espia_dev_nb=None):
+    def __init__(self, espia_dev_nb, config_path = None, config_name = None, reconstruction=False):
     
         self.__cam_inited = False
 	
-	if espia_dev_nb is not None:	
-	    self.init(espia_dev_nb)
+	self.init(espia_dev_nb, config_path, config_name, reconstruction)
 
     @DEB_MEMBER_FUNCT
-    def init(self, espia_dev_nb):	
+    def init(self, espia_dev_nb, config_path, config_name, reconstruction):	
 	self.__edev= Espia.Dev(espia_dev_nb)
 	self.__edev.resetLink()
 	self.__eser= Espia.SerialLine(self.__edev)
@@ -61,7 +60,6 @@ class MpxAcq:
 
 	self.__hwInt= Maxipix.Interface(self.__eacq, self.__mbuf, 
 					self.__pacq, self.__mdet)
-	self.__ct= CtControl(self.__hwInt)
 	self.__reconstruct= None
 	self.__reconstructType = Maxipix.MaxipixReconstruction.RAW	
 	
@@ -75,16 +73,20 @@ class MpxAcq:
                              'DISPATCH':Maxipix.MaxipixReconstruction.DISPATCH,
                              'MEAN':Maxipix.MaxipixReconstruction.MEAN,
                              }
-        
+       
+       
+        if config_path is not None and config_name is not None:
+            self.setPath(config_path)
+            self.loadConfig(config_name, reconstruction)
+
         self.__cam_inited = True
-	
+        	
     @DEB_MEMBER_FUNCT
     def __del__(self):
         if self.__cam_inited:
-            del self.__ct; gc.collect()
+            del self.__hwInt; gc.collect()
             if self.__reconstruct is not None:
                 del self.__reconstruct
-            del self.__hwInt; gc.collect()
             del self.__mdet; gc.collect()
             del self.__pacq; gc.collect()
             del self.__pser; gc.collect()
@@ -94,12 +96,6 @@ class MpxAcq:
             del self.__eser; gc.collect()
             del self.__edev; gc.collect()
 
-
-    def getControl(self):
-        if self.__cam_inited:
-	    return self.__ct
-	else:
-	    raise MpxError("init() method must be called first")
 
     def getInterface(self):
         if self.__cam_inited:
@@ -169,13 +165,13 @@ class MpxAcq:
         self.cfgPath= spath
 
     @DEB_MEMBER_FUNCT
-    def loadConfig(self,name) :
-	thread.start_new_thread(MpxAcq._loadConfig,(self,self.__hwInt,name))
+    def loadConfig(self,name, reconstruction=True) :
+	thread.start_new_thread(MpxAcq._loadConfig,(self,self.__hwInt,name,reconstruction))
 
-    def _loadConfig(cnt,hwInterface, name):
+    def _loadConfig(cnt,hwInterface, name, reconstruction):
 	try:
 		hwInterface.setConfigFlag(True)	
-		cnt.loadDetConfig(name)
+		cnt.loadDetConfig(name, reconstruction)
 		cnt.loadChipConfig(name)
         	# Need to inform afterward the hwInterface about new ranges
         	# which are calculated once the configs have been loaded.
@@ -187,7 +183,7 @@ class MpxAcq:
         print "\n\nEnd of configuration, Maxipix is ready !"
 
     @DEB_MEMBER_FUNCT
-    def loadDetConfig(self, name):
+    def loadDetConfig(self, name, reconstruction):
 	detConfig= MpxDetConfig.MpxDetConfig()
 	detConfig.setPath(self.cfgPath)
 	print "Loading Detector Config <%s> ..."%name
@@ -220,11 +216,52 @@ class MpxAcq:
         # Ask Dacs obj to apply the new FSR registers (DACS values)
 	self.mpxDacs.applyChipDacs(0)
 
-        self.__reconstruct = self.__mdet.getReconstruction()
-        if self.__reconstruct is not None:
-            self.setFillMode(Maxipix.MaxipixReconstruction.RAW)
-        self.__ct.setReconstructionTask(self.__reconstruct)
+        # Reconstruction can be not apply if requested
+        self.setReconstructionActive(reconstruction)
+
+    @DEB_MEMBER_FUNCT
+    def setReconstructionActive(self,active):
+
+        #apply read config detector size
+        self.__mdet.setChipsRotation(self.mpxCfg["rotations"])
+	self.__mdet.setVersion(self.mpxCfg["version"])	
+        xgap = self.mpxCfg["xgap"];  ygap = self.mpxCfg["ygap"]
+        xchip = self.mpxCfg["xchip"]; ychip = self.mpxCfg["ychip"]
+        self.__mdet.setNbChip(xchip, ychip)        
+        self.__mdet.setPixelGap(xgap, ygap)
+        r_model= self.__mdet.getReconstruction()
+        d_model = self.__mdet.getDetectorModel()
+        needed = self.__mdet.needReconstruction()
         
+        # now decide to active or not a reconstruction
+        # accord to either the config file or the "active" flag
+        if active and needed:
+            print "Image reconstruction is ON, model:" , d_model," ..."
+            if self.__reconstruct is not None:
+                self.__hwInt.setReconstructionTask(None)
+                del self.__reconstruct
+            self.__reconstruct= Maxipix.MaxipixReconstruction()
+            self.__reconstruct.setModel(r_model)
+            self.setFillMode(Maxipix.MaxipixReconstruction.RAW)	    
+            self.__reconstruct.setXnYGapSpace(self.mpxCfg["xgap"], 
+                                              self.mpxCfg["ygap"])
+            self.__hwInt.setReconstructionTask(self.__reconstruct)
+        else:
+            if not needed:
+                print "Image reconstruction is OFF (config off), model: ", d_model, "..."
+            else:
+                print "Image reconstruction is OFF (active off), model: ", d_model, "..."
+                
+            self.__hwInt.setReconstructionTask(None)
+            # flatten detector if it's 2x2
+            if r_model == 0: xchip = 4; ychip = 1
+            # remove the gap
+            xgap = ygap = 0
+                
+        # Update now det image size and this will call maxImageSizeChanged callback to update CtImage
+        self.__mdet.setNbChip(xchip, ychip)        
+        self.__mdet.setPixelGap(xgap, ygap)
+
     @DEB_MEMBER_FUNCT
     def loadChipConfig(self, name):
 	self.chipCfg= MpxChipConfig.MpxPixelConfig(self.mpxCfg["version"], 
