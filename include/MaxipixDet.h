@@ -71,8 +71,7 @@ class MaxipixDet : public HwMaxImageSizeCallbackGen
     void getDetectorModel(std::string& model);
 
     // -- reconstruction
-    void forceNoReconstruction(bool flag) { m_no_reconstruction = flag;}
-    MaxipixReconstruction* getReconstruction();
+    MaxipixReconstruction* getReconstructionTask();
 
   protected:
     virtual void setMaxImageSizeCallbackActive(bool cb_active);

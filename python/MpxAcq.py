@@ -193,10 +193,6 @@ class MpxAcq:
 	self.cfgFilename= detConfig.getFilename()
 
 	self.mpxCfg= detConfig.getMpxCfg()
-	self.__mdet.setVersion(self.mpxCfg["version"])
-	self.__mdet.setNbChip(self.mpxCfg["xchip"], self.mpxCfg["ychip"])
-	self.__mdet.setPixelGap(self.mpxCfg["xgap"], self.mpxCfg["ygap"])
-        self.__mdet.setChipsRotation(self.mpxCfg["rotations"])
         
 	self.priamPorts= detConfig.getPriamPorts()
 	self.mpxDacs= detConfig.getDacs()
@@ -229,32 +225,31 @@ class MpxAcq:
         xchip = self.mpxCfg["xchip"]; ychip = self.mpxCfg["ychip"]
         self.__mdet.setNbChip(xchip, ychip)        
         self.__mdet.setPixelGap(xgap, ygap)
-        r_model= self.__mdet.getReconstruction()
+        # get the default reconstruction task (object) set from the read config parameters
+        # but first inform the hwInt to no reconstruction
+        if self.__reconstruct is not None:
+            del self.__reconstruct
+        self.__hwInt.setReconstructionTask(None)            
+        self.__reconstruct = self.__mdet.getReconstructionTask()
+
+        
         d_model = self.__mdet.getDetectorModel()
-        needed = self.__mdet.needReconstruction()
         
         # now decide to active or not a reconstruction
-        # accord to either the config file or the "active" flag
-        if active and needed:
-            print "Image reconstruction is ON, model:" , d_model," ..."
-            if self.__reconstruct is not None:
-                self.__hwInt.setReconstructionTask(None)
-                del self.__reconstruct
-            self.__reconstruct= Maxipix.MaxipixReconstruction()
-            self.__reconstruct.setModel(r_model)
-            self.setFillMode(Maxipix.MaxipixReconstruction.RAW)	    
-            self.__reconstruct.setXnYGapSpace(self.mpxCfg["xgap"], 
-                                              self.mpxCfg["ygap"])
+        # accord to either the config file and/or the "active" flag
+        if active and self.__reconstruct is not None:
+            print "Image reconstruction is switched ON, model:" , d_model
             self.__hwInt.setReconstructionTask(self.__reconstruct)
         else:
-            if not needed:
-                print "Image reconstruction is OFF (config off), model: ", d_model, "..."
+            if active and self.__reconstruct is None:
+                print "Image reconstruction is switched OFF (active=true, config=off), model: ", d_model
             else:
-                print "Image reconstruction is OFF (active off), model: ", d_model, "..."
+                print "Image reconstruction is switched OFF (active=false), model: ", d_model            
                 
-            self.__hwInt.setReconstructionTask(None)
             # flatten detector if it's 2x2
-            if r_model == 0: xchip = 4; ychip = 1
+            if xchip == 2 and ychip == 2:
+                xchip = 4; ychip = 1
+                print " \t\t--> 2x2 flatten out to 4x1"
             # remove the gap
             xgap = ygap = 0
                 

@@ -73,8 +73,7 @@ class MaxipixDet
     void getDetectorModel(std::string& model /Out/);
 
     // -- reconstruction
-    void forceNoReconstruction(bool);
-    Maxipix::MaxipixReconstruction* getReconstruction();
+    Maxipix::MaxipixReconstruction* getReconstructionTask();
 };
 
 };

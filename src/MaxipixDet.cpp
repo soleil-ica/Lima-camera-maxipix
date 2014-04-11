@@ -33,23 +33,26 @@ MaxipixDet::MaxipixDet()
 	  :m_xchip(0), m_ychip(0), 
 	   m_xgap(0), m_ygap(0),
 	   m_type(Bpp16), m_version(MXR2),
-           m_mis_cb_act(false),
-	   m_no_reconstruction(false)
+           m_mis_cb_act(false)
 {
+    DEB_CONSTRUCTOR();
     setNbChip(1, 1);
 }
 
 MaxipixDet::~MaxipixDet()
 {
+    DEB_DESTRUCTOR();
 }
 
 void MaxipixDet::setVersion(Version version)
 {
+    DEB_MEMBER_FUNCT();
     m_version= version;
 }
 
 void MaxipixDet::setNbChip(int xchip, int ychip)
 {
+    DEB_MEMBER_FUNCT();
     if ((xchip != m_xchip)||(ychip != m_ychip)) {
         m_xchip= xchip;
         m_ychip= ychip;
@@ -60,6 +63,7 @@ void MaxipixDet::setNbChip(int xchip, int ychip)
 
 void MaxipixDet::setPixelGap(int xgap, int ygap)
 {
+    DEB_MEMBER_FUNCT();
     if ((xgap != m_xgap)||(ygap != m_ygap)) {
         m_xgap= xgap;
     	m_ygap= ygap;
@@ -69,13 +73,14 @@ void MaxipixDet::setPixelGap(int xgap, int ygap)
 
 void MaxipixDet::setChipsRotation(const std::list<RotationMode>& rotations)
 {
-  DEB_MEMBER_FUNCT();
-  DEB_PARAM() << DEB_VAR1(rotations.size());
+    DEB_MEMBER_FUNCT();
+    DEB_PARAM() << DEB_VAR1(rotations.size());
 
-  m_rotations = rotations;
+    m_rotations = rotations;
 }
 
 void MaxipixDet::_updateSize() {
+    DEB_MEMBER_FUNCT();
     int w= m_xchip*256 + (m_xchip-1)*m_xgap;
     int h= m_ychip*256 + (m_ychip-1)*m_ygap;
     m_size= Size(w, h);
@@ -86,21 +91,25 @@ void MaxipixDet::_updateSize() {
 	
 void MaxipixDet::getImageSize(Size& size)
 {
+    DEB_MEMBER_FUNCT();
     size= m_size;
 }
 
 void MaxipixDet::getPixelSize(double& x_size, double& y_size)
 {
+    DEB_MEMBER_FUNCT();
     x_size = y_size = PixelSize;
 }
 
 void MaxipixDet::getImageType(ImageType& type)
 {
+    DEB_MEMBER_FUNCT();
     type= m_type;
 }
 
 void MaxipixDet::getDetectorType(std::string& type)
 {
+    DEB_MEMBER_FUNCT();
     std::ostringstream os;
     os << "MAXIPIX";
     type= os.str();
@@ -108,9 +117,14 @@ void MaxipixDet::getDetectorType(std::string& type)
 
 void MaxipixDet::getDetectorModel(std::string& type)
 {
+    DEB_MEMBER_FUNCT();
     std::ostringstream os;
 
-    os << m_xchip << "x" << m_ychip << "-";
+    if (!m_rotations.size())
+      os << m_xchip << "x" << m_ychip << "(gap:" << m_xgap << "x" << m_ygap << ")-";
+    else
+     os << m_xchip << "x" << m_ychip << "(chip rotation)-";
+
     switch (m_version) {
       case MPX2:	os << "MPX2" ; break;
       case MXR2:	os << "MXR2"; break;
@@ -121,43 +135,37 @@ void MaxipixDet::getDetectorModel(std::string& type)
     type= os.str();
 }
 
-MaxipixReconstruction* MaxipixDet::getReconstruction()
+MaxipixReconstruction* MaxipixDet::getReconstructionTask()
 {
-  if(!m_no_reconstruction)
-    {
-      MaxipixReconstruction *returnReconstruct = NULL;
-      if(!m_xgap && !m_ygap)
-	{
-	  if(!m_rotations.size()) // No reconstruction
-	    return NULL;
-
-	  returnReconstruct = new MaxipixReconstruction();
-	  returnReconstruct->setModel(MaxipixReconstruction::M_FREE);
-	  returnReconstruct->setChipsRotation(m_rotations);
-	}
-      else if ((m_xchip==2)&&(m_ychip==2)) 
-	{
-	  returnReconstruct = new MaxipixReconstruction();
-	  returnReconstruct->setModel(MaxipixReconstruction::M_2x2);
-	}
-      else if ((m_xchip==5)&&(m_ychip)) 
-	{
-	  returnReconstruct = new MaxipixReconstruction();
-	  returnReconstruct->setModel(MaxipixReconstruction::M_5x1);
-	}
-      else 
-	{
-	  throw LIMA_HW_EXC(Error, "Unknown reconstruction model");
-	}
-      returnReconstruct->setXnYGapSpace(m_xgap,m_ygap);
-      return returnReconstruct;
-    }
-  else
-    return NULL;
+    DEB_MEMBER_FUNCT();
+    MaxipixReconstruction *returnReconstruct = NULL;
+    if(!m_xgap && !m_ygap)
+      {
+	if(!m_rotations.size()) // No reconstruction
+	  return NULL;
+	
+	returnReconstruct = new MaxipixReconstruction(MaxipixReconstruction::M_FREE, MaxipixReconstruction::RAW);
+	returnReconstruct->setChipsRotation(m_rotations);
+      }
+    else if ((m_xchip==2)&&(m_ychip==2)) 
+      {
+	returnReconstruct = new MaxipixReconstruction(MaxipixReconstruction::M_2x2, MaxipixReconstruction::RAW);
+      }
+    else if ((m_xchip==5)&&(m_ychip)) 
+      {
+	returnReconstruct = new MaxipixReconstruction(MaxipixReconstruction::M_5x1, MaxipixReconstruction::RAW);
+      }
+    else 
+      {
+	throw LIMA_HW_EXC(Error, "Unknown reconstruction model");
+      }
+    returnReconstruct->setXnYGapSpace(m_xgap,m_ygap);
+    return returnReconstruct;
 }
 
 void MaxipixDet::setMaxImageSizeCallbackActive(bool cb_active)
 {
-        m_mis_cb_act = cb_active;
+    DEB_MEMBER_FUNCT();
+    m_mis_cb_act = cb_active;
 }
      
