@@ -1,5 +1,7 @@
-Maxipix
--------
+.. _camera-maxipix:
+
+Maxipix camera plugin
+-----------------------
 
 .. image:: Maxipix.png
 
