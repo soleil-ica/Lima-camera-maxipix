@@ -131,8 +131,10 @@ class ShutterCtrlObj : HwShutterCtrlObj
 class Interface : HwInterface
 {
  public:
-	Interface(Espia::Acq& acq, BufferCtrlMgr& buffer_mgr, 
-		  Maxipix::PriamAcq& acq, Maxipix::MaxipixDet& det);
+	Interface(Espia::Acq& acq /KeepReference/,
+		  BufferCtrlMgr& buffer_mgr /KeepReference/, 
+		  Maxipix::PriamAcq& acq /KeepReference/,
+		  Maxipix::MaxipixDet& det /KeepReference/);
 	virtual ~Interface();
 
 //	virtual void getCapList(CapList&) const;
