@@ -222,8 +222,8 @@ class MpxAcq:
         self.__mdet.setChipsRotation(self.mpxCfg["rotations"])
 	self.__mdet.setVersion(self.mpxCfg["version"])	
         xgap = self.mpxCfg["xgap"];  ygap = self.mpxCfg["ygap"]
-        xchip = self.mpxCfg["xchip"]; ychip = self.mpxCfg["ychip"]
-        self.__mdet.setNbChip(xchip, ychip)        
+        xchips = self.mpxCfg["xchips"]; ychips = self.mpxCfg["ychips"]
+        self.__mdet.setNbChip(xchips, ychips)        
         self.__mdet.setPixelGap(xgap, ygap)
         # get the default reconstruction task (object) set from the read config parameters
         # but first inform the hwInt to no reconstruction
@@ -247,20 +247,20 @@ class MpxAcq:
                 print "Image reconstruction is switched OFF (active=false), model: ", d_model            
                 
             # flatten detector if it's 2x2
-            if xchip == 2 and ychip == 2:
-                xchip = 4; ychip = 1
+            if xchips == 2 and ychips == 2:
+                xchips = 4; ychips = 1
                 print " \t\t--> 2x2 flatten out to 4x1"
             # remove the gap
             xgap = ygap = 0
                 
         # Update now det image size and this will call maxImageSizeChanged callback to update CtImage
-        self.__mdet.setNbChip(xchip, ychip)        
+        self.__mdet.setNbChip(xchips, ychips)        
         self.__mdet.setPixelGap(xgap, ygap)
 
     @DEB_MEMBER_FUNCT
     def loadChipConfig(self, name):
 	self.chipCfg= MpxChipConfig.MpxPixelConfig(self.mpxCfg["version"], 
-						self.mpxCfg["nchip"])
+						self.mpxCfg["nchips"])
 	self.chipCfg.setPath(self.cfgPath)
 	self.chipCfg.loadConfig(name)
 
@@ -269,7 +269,7 @@ class MpxAcq:
     @DEB_MEMBER_FUNCT
     def applyPixelConfig(self, chipid):
 	if chipid==0:
-	    for idx in range(self.mpxCfg["nchip"]):
+	    for idx in range(self.mpxCfg["nchips"]):
 	        scfg= self.chipCfg.getMpxString(idx+1)
 	        print "Loading Chip Config #%d ..."%(idx+1)
 	        self.__pacq.setChipCfg(self.priamPorts[idx], scfg)
@@ -298,7 +298,7 @@ class MpxAcq:
 
 	     
     def __getPriamPort(self, chipid):
-	if chipid <= 0 or chipid > self.mpxCfg["nchip"]:
+	if chipid <= 0 or chipid > self.mpxCfg["nchips"]:
             raise MpxError("<%d> is not a valid chipID"%chipid)
 	return self.priamPorts[chipid-1]
 	

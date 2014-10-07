@@ -20,7 +20,7 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 ############################################################################
 import os
-import ConfigDict
+import libconfig
 import MpxDacs
 from MpxCommon import *
 
@@ -68,7 +68,19 @@ class MpxDetConfig:
             raise MpxError("<%s> is not a valid file"%fname)
         if not os.access(fname, os.R_OK):
             raise MpxError("No read permission on <%s>"%fname)
-        return fname
+
+        try:
+            cfg = libconfig.Config(fname)
+            cfg.load()
+        except RuntimeError:
+            raise MpxError("<%s> is not a valid libconfig file"%fname)
+
+        try:
+            config = cfg['config']
+        except KeyError:
+            raise MpxError("<%s> is not a valid maxipix file"%fname)
+        
+        return cfg
 
     def __setParamError(self, msg):
 	txt = "ConfigFile <%s>"%self.cfgFile
@@ -78,56 +90,73 @@ class MpxDetConfig:
 	raise MpxError(txt)
 
     def __getParamNeeded(self, pars, name, chklist=None):
-	if not pars.has_key(name):
+        try:
+            param = pars[name]
+        except KeyError:
 	    self.__setParamError("Missing mandatory parameter <%s>"%name)
-	param= pars[name]
+            return None
 	if chklist is not None:
 	    if param not in chklist:
 		self.__setParamError("<%s> has an invalid value. Should be in %s"%(name, str(chklist)))
 	return param
 
     def __getParamOptional(self, pars, name, chklist=None, default=None):
-	if not pars.has_key(name):
+        try:
+            param = pars[name]
+        except KeyError:
 	    if default is not None:
 		return default
 	    else:
 	        return None
-	param= pars[name]
 	if chklist is not None:
 	    if param not in chklist:
 		self.__setParamError("<%s> has an invalid value. Should be in %s"%(name, str(chklist)))
 	return param
 
     def loadDetectorConfig(self, fname):
-	self.cfgFile= self.__checkConfigFile(fname)
-	cfg= ConfigDict.ConfigDict()
-	cfg.read(fname)
+	cfg = self.__checkConfigFile(fname)
 
 	self.__section= None
-	self.__parseMaxipixSection(cfg)
-	self.__parsePriamSection(cfg)
+	self.__parseDetModuleSection(cfg)
+        self.__parseLayoutStardardSection(cfg)
 	self.__parseDacsSection(cfg)
-	self.__parseThresholdSection(cfg)
+	self.__parseCalibrationSection(cfg)
 
-    def __parseMaxipixSection(self, cfg):
-	if not cfg.has_key("maxipix"):
-	    self.__setParamError("No <maxipix> section found")
-	pars= cfg["maxipix"]
-	self.__section= "maxipix"
+    def __parseDetModuleSection(self, cfg):
+        try:
+            pars = cfg["detmodule"]
+        except KeyError:
+	    self.__setParamError("No <detmodule> section found")
+            
+	self.__section= "detmodule"        
 	self.mpxCfg= {}
-	self.mpxCfg["type"]= self.__getParamNeeded(pars, "type", MpxTypes)
-	self.mpxCfg["version"]= mpxVersion(self.mpxCfg["type"])
+	self.mpxCfg["asic"]= self.__getParamNeeded(pars, "asic", MpxTypes)
+	self.mpxCfg["version"]= mpxVersion(self.mpxCfg["asic"])
 	self.mpxCfg["polarity"]= mpxPolarity(self.__getParamNeeded(pars, "polarity", MpxPolarityTypes))
 	self.mpxCfg["frequency"]= self.__getParamNeeded(pars, "frequency")
-	
-	self.mpxCfg["xchip"]= self.__getParamNeeded(pars, "xchip", range(1,6))
-	self.mpxCfg["ychip"]= self.__getParamOptional(pars, "ychip", [1,2], 1)
-	self.mpxCfg["nchip"]= self.mpxCfg["xchip"]*self.mpxCfg["ychip"]
+	self.mpxCfg["nchips"]= self.__getParamNeeded(pars, "nchips")
+
+	self.priamPorts= range(self.mpxCfg["nchips"])
+
+        for idx in range(self.mpxCfg["nchips"]):
+            name= "chip_%d"%(idx+1)
+            self.priamPorts[idx]= self.__getParamOptional(pars, name, 
+                                                          range(5), self.priamPorts[idx]) -1 
+
+    def __parseLayoutStardardSection(self, cfg):
+        try:
+            pars = cfg['layout_standard']
+        except KeyError:
+            self.__setParamError('No <layout_standard> section found')
+
+        self.__section= 'layout_standard'
+	self.mpxCfg["xchips"]= self.__getParamNeeded(pars, "xchips", range(1,6))
+	self.mpxCfg["ychips"]= self.__getParamOptional(pars, "ychips", [1,2], 1)
 
 	self.mpxCfg["xgap"]= self.__getParamOptional(pars, "xgap", None, 0)
 	self.mpxCfg["ygap"]= self.__getParamOptional(pars, "ygap", None, 0)
 
-        # set the per chip rotation in any, only valid for maxipix without gap reconstruction
+        # set the per chip rotation if any, only valid for maxipix without gap reconstruction
         self.mpxCfg["rotations"]=[]
         if self.mpxCfg["xgap"] == 0 and self.mpxCfg["ygap"] ==0:
             for idx in range(self.mpxCfg["nchip"]):
@@ -136,48 +165,44 @@ class MpxDetConfig:
                                                           MpxRotationTypes, 0)
                 self.mpxCfg["rotations"].append(MpxRotation[self.mpxCfg[name]])
             
-    def __parsePriamSection(self, cfg):
-	self.priamPorts= range(self.mpxCfg["nchip"])
-	if self.mpxCfg["xchip"]==2 and self.mpxCfg["ychip"]==2:
-	    self.priamPorts[0]= 1
-	    self.priamPorts[1]= 2
-	    self.priamPorts[2]= 0
-	    self.priamPorts[3]= 3
-
-	if cfg.has_key("priam"):
-	    pars= cfg["priam"]
-	    self.__section= "priam"
-	    for idx in range(self.mpxCfg["nchip"]):
-		name= "chip_%d"%(idx+1)
-		self.priamPorts[idx]= self.__getParamOptional(pars, name, 
-						range(5), self.priamPorts[idx])
-
-    def __parseThresholdSection(self, cfg):
-	self.__section= "threshold"
-	pars= cfg.get("threshold", {})
-	thlnoise= []
-	for idx in range(self.mpxCfg["nchip"]):
-	    name= "thlnoise_%d"%(idx+1)
-	    thlnoise.append(self.__getParamOptional(pars, name, None, 0))
-	estep= self.__getParamOptional(pars, "estep", None, 0)
-	e0thl= self.__getParamOptional(pars, "e0thl", None, 0)
-
-	self.dacs.setThlNoise(0, thlnoise)
-	self.dacs.setECalibration(e0thl, estep)
-
+            
     def __parseDacsSection(self, cfg):
-	self.dacs= MpxDacs.MpxDacs(self.mpxCfg["version"], self.mpxCfg["nchip"])
+        try:
+            pars = cfg['dacs']
+        except KeyError:
+            self.__setParamError("No <dacs> section found")
+            
 	self.__section= "dacs"
-	if cfg.has_key("dacs"):
-	    pars= cfg["dacs"]
-	    setDacs= {}
-	    fsrKeys= MpxDacs.getMpxFsrDef(self.mpxCfg["version"]).listKeys()
-	    for key in pars.keys():
-		if key not in fsrKeys:
-		    self.__setParamError("Invalid key <%s>"%key)
-		else:
-		    setDacs[key]= pars[key]
-	    self.dacs.setDacs(0, setDacs)
+	self.dacs= MpxDacs.MpxDacs(self.mpxCfg["version"], self.mpxCfg["nchips"])
+        setDacs= {}
+        fsrKeys= MpxDacs.getMpxFsrDef(self.mpxCfg["version"]).listKeys()
+        for key in pars.keys():
+            if key not in fsrKeys:
+                self.__setParamError("Invalid key <%s>"%key)
+            else:
+                setDacs[key]= pars[key]
+                
+        self.dacs.setDacs(0, setDacs)
+
+
+    def __parseCalibrationSection(self, cfg):
+        try:
+            pars = cfg['calibration']
+        except KeyError:
+            self.__setParamError('No <calibration> section found')
+        
+        self.__section= 'calibration'
+        thlnoise = []; thlxray = []
+        for idx in range(self.mpxCfg['nchips']):
+            name= "thlnoise_%d"%(idx+1)
+            thlnoise.append(self.__getParamOptional(pars, name, None, 0))
+            name = 'thlxray_%d'%(idx+1)
+            thlxray.append(self.__getParamOptional(pars, name, None, 0))
+        energy = self.__getParamOptional(pars, 'energy', None, 0)
+
+        self.dacs.setThlNoise(thlnoise)
+        self.dacs.setThlXray(thlxray)
+        self.dacs.setEnergyCalibration(energy)
 
     def getPath(self):
 	return self.path
@@ -213,15 +238,15 @@ if __name__=="__main__":
 	print "> ConfigName =", cfg.getName()
 	print "> FileName   =", cfg.getFilename()
 	print 
-	print "[maxipix]"
+	print "[detmodule]"
 	printDict(cfg.getMpxCfg())
-	print "[priam]"
 	print "ports =", str(cfg.getPriamPorts())
-	print "[threshold]"
-	print "thlnoise = ", str(cfg.getDacs().getThlNoise(0))
-	(e0thl, estep)= cfg.getDacs().getECalibration()
-	print "e0thl = ", e0thl
-	print "estep = ", estep
+	print "[calibration]"
+	print "thlnoise = ", str(cfg.getDacs().getThlNoise())
+        print "thlxray = ", str(cfg.getDacs().getThlXray())
+        
+	print "energy calibration = ", cfg.getDacs().getEnergyCalibration()
+        print "energy = ", cfg.getDacs().getEnergy()
 	print "[dacs]"
 	printDict(cfg.getDacs().getDacs(0))
 

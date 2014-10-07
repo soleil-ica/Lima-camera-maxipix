@@ -34,12 +34,15 @@ MpxPolarity= [	Maxipix.MaxipixDet.NEGATIVE,
 		Maxipix.MaxipixDet.POSITIVE ]
 MpxPolarityTypes= ["NEGATIVE","POSITIVE"]
 
-MpxRotationTypes=[0,90,180,270]
+MpxRotationTypes=[0,1,2,3,-1,-2,-3]
 
 MpxRotation= {0: Core.Rotation_0,
-              90: Core.Rotation_90,
-              180: Core.Rotation_180,
-              270: Core.Rotation_270
+              1: Core.Rotation_90,
+              2: Core.Rotation_180,
+              3: Core.Rotation_270,
+              -1: Core.Rotation_270,
+              -2: Core.Rotation_180,
+              -3: Core.Rotation_90
               }
 
 def mpxPolarity(polarity):
