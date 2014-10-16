@@ -574,7 +574,72 @@ void MaxipixReconstruction::setXnYGapSpace(int xSpace,int ySpace)
 
 void MaxipixReconstruction::setChipsRotation(const RotationModeList& rList)
 {
+  mModel = M_FREE;
+  mXSpace = mYSpace = 0;
   mChipsRotation = rList;
+}
+
+void MaxipixReconstruction::setChipsPosition(const MaxipixReconstruction::PositionList& pList)
+{
+  mModel = M_GENERAL;
+  mChipsPosition = pList;
+}
+
+lima::Size MaxipixReconstruction::getImageSize() const
+{  
+  DEB_MEMBER_FUNCT();
+     
+  switch(mModel)
+    {
+    case M_2x2:
+      return _getImageSize(2,2);
+    case M_5x1:
+      return _getImageSize(5,1);
+    case M_FREE:
+      return _getImageSize(mChipsRotation.size(),1);
+    case M_GENERAL:
+      {
+      int xMin,xMax;
+      int yMin,yMax;
+      PositionList::const_iterator chip_pos = mChipsPosition.begin();
+      if(chip_pos == mChipsPosition.end())
+	THROW_HW_ERROR(Error) << "No chips position set";
+
+      //Init
+      xMin = chip_pos->origin.x;
+      xMax = xMax + MAXIPIX_NB_COLUMN;
+
+      yMin = chip_pos->origin.y;
+      yMax = yMin + MAXIPIX_NB_LINE;
+      ++chip_pos;
+
+      for(;chip_pos != mChipsPosition.end();++chip_pos)
+	{
+	  int localXmin,localXMax,localYmin,localYMax;
+	  localXmin = chip_pos->origin.x;
+	  localXMax = localXmin + MAXIPIX_NB_COLUMN;
+
+	  localYmin = chip_pos->origin.y;
+	  localYMax = localYmin + MAXIPIX_NB_LINE;
+
+	  if(localXmin < xMin) xMin = localXmin;
+	  if(localXMax > xMax) xMax = localXMax;
+
+	  if(localYmin < yMin) yMin = localYmin;
+	  if(localYMax > yMax) yMax = localYMax;
+	}
+      return Size(xMax-xMin,yMax-yMin);
+      }
+    default:
+      THROW_HW_ERROR(Error) << "Reconstruction type unknown";
+    }
+}
+
+lima::Size MaxipixReconstruction::_getImageSize(int x_chip,int y_chip) const
+{
+  int w= x_chip*256 + (x_chip-1)*mXSpace;
+  int h= y_chip*256 + (y_chip-1)*mYSpace;
+  return Size(w, h);
 }
 
 Data MaxipixReconstruction::process(Data &aData)
@@ -651,7 +716,7 @@ Data MaxipixReconstruction::process(Data &aData)
 	aReturnData.setBuffer(aNewBuffer);
       aNewBuffer->unref();
     }
-  else				// M_FREE
+  else if(mModel == M_FREE)
     {
       if(_processingInPlaceFlag)
 	{
@@ -704,9 +769,75 @@ Data MaxipixReconstruction::process(Data &aData)
 		}
 	    }
 	}
-      else
+      else			// M_GENERAL
 	{
-	  //@todo if needed
+	  Buffer *aNewBuffer = new Buffer(aReturnData.size());
+	  memset(aNewBuffer,0,aReturnData.size());
+	  int chip_id = 0;
+	  int nb_chips = mChipsPosition.size();
+	  for(PositionList::iterator chip_iter = mChipsPosition.begin();
+	      chip_iter != mChipsPosition.end();++chip_iter,++chip_id)
+	    {
+	      int depth = aReturnData.depth();
+	      int src_line_stride = nb_chips * MAXIPIX_NB_COLUMN * depth;
+	      int dst_line_stride = aReturnData.dimensions[0] * depth;
+	      unsigned char* dst = ((unsigned char*)aNewBuffer->data) + chip_iter->origin.y * dst_line_stride +
+		chip_iter->origin.x * depth;
+
+	      switch(chip_iter->rotation)
+		{
+		case Rotation_90:
+		  for(int col_id = 0;col_id < MAXIPIX_NB_COLUMN;++col_id)
+		    {
+		      unsigned char* src = ((unsigned char*)aData.data()) + (chip_id * MAXIPIX_NB_COLUMN * depth + 
+									     (MAXIPIX_NB_COLUMN - 1 - col_id) * depth);
+		      unsigned char* local_dst = dst + dst_line_stride * col_id;
+		      for(int line_id = 0;line_id < MAXIPIX_NB_LINE;++line_id,src += src_line_stride,dst += depth)
+			memcpy(local_dst,src,depth);
+		    }
+		  break;
+		case Rotation_180:
+		  for(int line_id = 0;line_id < MAXIPIX_NB_LINE;++line_id)
+		    {
+		      unsigned char* src = ((unsigned char*)aData.data()) + (chip_id * MAXIPIX_NB_COLUMN * depth + 
+									     (MAXIPIX_NB_LINE - 1 - line_id) * src_line_stride +
+									     (MAXIPIX_NB_COLUMN - 1 ) * depth);
+		      unsigned char* local_dst = dst + dst_line_stride * line_id;
+		      for(int col_id = 0;col_id < MAXIPIX_NB_COLUMN;++col_id,local_dst += depth,src -= depth)
+			memcpy(local_dst,src,depth);
+		    }
+		  break;
+		case Rotation_270:
+		  for(int col_id = 0;col_id < MAXIPIX_NB_COLUMN;++col_id)
+		    {
+		      unsigned char* src = ((unsigned char*)aData.data()) + (chip_id * MAXIPIX_NB_COLUMN * depth + 
+									     (MAXIPIX_NB_LINE * src_line_stride) - 
+									     (MAXIPIX_NB_COLUMN + col_id) * depth);
+		      unsigned char* local_dst = dst + dst_line_stride * col_id;
+		      for(int line_id = 0;line_id < MAXIPIX_NB_LINE;++line_id,src -= src_line_stride,dst += depth)
+			memcpy(local_dst,src,depth);
+		    }
+		  break;
+		default:
+		  {
+		    unsigned char* src = ((unsigned char*)aData.data()) + chip_id * MAXIPIX_NB_COLUMN * depth;
+		    for(int ligne_id = 0;ligne_id < MAXIPIX_NB_LINE;++ligne_id,src += src_line_stride,dst += dst_line_stride)
+		      memcpy(dst,src,MAXIPIX_NB_COLUMN * depth);
+		  }
+		  break;
+		}
+	    }
+	  
+
+	  if(_processingInPlaceFlag)
+	    {
+	      unsigned char *aSrcPt = (unsigned char*)aNewBuffer->data;
+	      unsigned char *aDstPt = (unsigned char*)aData.data();
+	      memcpy(aDstPt,aSrcPt,aReturnData.size());
+	    }
+	  else
+	    aReturnData.setBuffer(aNewBuffer);
+	  aNewBuffer->unref();
 	}
     }
 

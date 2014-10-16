@@ -25,6 +25,7 @@
 #include "LinkTask.h"
 #include <list>
 #include "Constants.h"
+#include <SizeUtils.h>
 
 namespace lima
 {
@@ -34,9 +35,17 @@ namespace lima
 
     class MaxipixReconstruction : public LinkTask
     {
+      DEB_CLASS_NAMESPC(DebModCamera, "MaxipixReconstruction", "Maxipix");
     public:
+      struct Position
+      {
+	Point		origin;
+	RotationMode	rotation;
+      };
+      typedef std::list<Position> PositionList;
+
       enum Type {RAW,ZERO,DISPATCH,MEAN};
-      enum Model {M_2x2,M_5x1,M_FREE};
+      enum Model {M_2x2,M_5x1,M_FREE,M_GENERAL};
       explicit MaxipixReconstruction(Model = M_5x1,Type = RAW);
       MaxipixReconstruction(const MaxipixReconstruction&);
       ~MaxipixReconstruction();
@@ -45,13 +54,19 @@ namespace lima
       void setModel(Model);
       void setXnYGapSpace(int xSpace,int ySpace);
       void setChipsRotation(const RotationModeList&);
+      void setChipsPosition(const PositionList&);
+      Size getImageSize() const;
+      
       virtual Data process(Data &aData);
     private:
+      Size _getImageSize(int,int) const;
+
       Type	mType;
       Model	mModel;
       int	mXSpace;
       int	mYSpace;
-      std::list<RotationMode> mChipsRotation;
+      RotationModeList	mChipsRotation;
+      PositionList	mChipsPosition;
     };
 
   } // namespace Maxipix
