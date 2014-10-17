@@ -297,17 +297,14 @@ class MpxDacs:
         self.__priamPorts = None
         
     def reset(self):
-	self.__dacs = []
-	self.__thlnoise = []
-        self.__thlxray = []
-        self.__energy = 0
-        self.__lastenergy = 0
-        
+	self.__dacs= []
+	self.__thlnoise= []
 	for ichip in range(self.nchip):
 	    self.__dacs.append(MpxChipDacs(self.version))
 	    self.__thlnoise.append(0)
-            self.__thlxray.append(0)
 
+	self.__e0thl= 0
+	self.__estep= 0.
 
     def __getChipIdx(self, chipid):
 	if chipid == 0:
@@ -343,43 +340,7 @@ class MpxDacs:
 	idx= self.__getChipIdx(chipid)
 	return self.__dacs[idx[0]].getFsrString()
 
-    def setThlNoise(self,values):
-        for idx in range(self.nchip):
-            self.__thlnoise[idx] = values[idx]
-
-    def getThlNoise(self):
-        return self.__thlnoise
-
-    def setThlXray(self,values):
-        for idx in range(self.nchip):
-            self.__thlxray[idx] = values[idx]
-
-    def getThlXray(self):
-        return self.__thlxray
-    
-    def setEnergyCalibration(self, energy):
-        self.__energy = energy
-        # set the default energy to apply valid chip thresholds
-        self.setEnergy(energy)
-        
-    def getEnergyCalibration(self):
-        return self.__energy
-
-    def setEnergy(self, energy):
-        for idx in range(self.nchip):
-            val = self.__thlnoise[idx]+( (self.__thlxray[idx] - self.__thlxray[idx])* energy/self.__energy )
-            self.__dacs[idx].setOneDac("thl", val)
-        self.__lastenergy = energy
-
-    def getEnergy(self):
-        return self.__lastenergy
-
-#######
-# BEGIN Obsolete threshold and energy calibration
-#######
-
-
-    def setThlNoiseOLD(self, chipid, value):
+    def setThlNoise(self, chipid, value):
 
         # save the current mean-thl (chip1 is the reference) to reapply
         # after thlnoise setting
@@ -394,7 +355,7 @@ class MpxDacs:
         # force now recalculation of thlnoise offsets                
         self.setThl(thl)
         
-    def getThlNoiseOLD(self, chipid):
+    def getThlNoise(self, chipid):
 	if chipid == 0:
 	    return self.__thlnoise
 	else:
@@ -402,24 +363,24 @@ class MpxDacs:
 	    return self.__thlnoise[idx[0]]
 
 
-    def setECalibrationOLD(self, e0thl, estep):
+    def setECalibration(self, e0thl, estep):
 	self.__e0thl= e0thl
 	self.__estep= estep
 
-    def getECalibrationOLD(self):
+    def getECalibration(self):
 	return (self.__e0thl, self.__estep)
 
     def getListKeys(self):
         return self.__dacs[0].getListKeys()
 
-    def setThlOLD(self, value):
+    def setThl(self, value):
 	for idx in range(self.nchip):
 	    val= value
 	    if idx>0 and self.__thlnoise[0]>0 and self.__thlnoise[idx]>0:
 		val= val + self.__thlnoise[idx] - self.__thlnoise[0]
 	    self.__dacs[idx].setOneDac("thl", val)
 
-    def getThlOLD(self):
+    def getThl(self):
 	values = []
 	for idx in range(self.nchip):
 	    val= self.__dacs[idx].getOneDac("thl")
@@ -433,24 +394,20 @@ class MpxDacs:
 		    return None
 	return thl
 	
-    def setEThlOLD(self, value):
+    def setEThl(self, value):
 	if self.__e0thl==0. or self.__estep==0:
 	    raise MpxError("No energy calibration for THL")
 	val= value / self.__estep
 	ival= int(round(val)) + self.__e0thl
 	self.setThl(ival)
 
-    def getEThlOLD(self):
+    def getEThl(self):
 	if self.__e0thl==0. or self.__estep==0:
 	    raise MpxError("No energy calibration for THL")
 	val= self.getThl()
 	if val is not None:
 	    val= (val - self.__e0thl) * self.__estep
 	return val
-#######
-# END Obsolete threshold and energy calibration
-#######
-
 
     def setOneDac(self, chipid, name, value):
 	for idx in self.__getChipIdx(chipid):
