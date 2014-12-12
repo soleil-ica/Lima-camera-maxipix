@@ -1,7 +1,7 @@
 ############################################################################
 # This file is part of LImA, a Library for Image Acquisition
 #
-# Copyright (C) : 2009-2011
+# Copyright (C) : 2009-2014
 # European Synchrotron Radiation Facility
 # BP 220, Grenoble 38043
 # FRANCE
@@ -52,10 +52,10 @@ class MpxDetConfig:
 	self.path= spath
 
     def loadConfig(self, name):
-	cfgFile= self.__getConfigFile(name)
+	cfgFile = self.__getConfigFile(name)
+        self.cfgFile= cfgFile
 	self.loadDetectorConfig(cfgFile)
-	self.cfgFile= cfgFile
-	self.name= name
+        self.name= name
 
     def __getConfigFile(self, name):
 	fname= "%s.cfg"%name
@@ -118,7 +118,7 @@ class MpxDetConfig:
 
 	self.__section= None
 	self.__parseDetModuleSection(cfg)
-        self.__parseLayoutStardardSection(cfg)
+        self.__parseLayoutSection(cfg)
 	self.__parseDacsSection(cfg)
 	self.__parseCalibrationSection(cfg)
 
@@ -135,7 +135,9 @@ class MpxDetConfig:
 	self.mpxCfg["polarity"]= mpxPolarity(self.__getParamNeeded(pars, "polarity", MpxPolarityTypes))
 	self.mpxCfg["frequency"]= self.__getParamNeeded(pars, "frequency")
 	self.mpxCfg["nchips"]= self.__getParamNeeded(pars, "nchips")
-
+        # the startup energy 
+        self.mpxCfg["energy"]= self.__getParamNeeded(pars, "energy")
+        
 	self.priamPorts= range(self.mpxCfg["nchips"])
 
         for idx in range(self.mpxCfg["nchips"]):
@@ -143,27 +145,68 @@ class MpxDetConfig:
             self.priamPorts[idx]= self.__getParamOptional(pars, name, 
                                                           range(5), self.priamPorts[idx]) -1 
 
-    def __parseLayoutStardardSection(self, cfg):
+    def __parseLayoutSection(self, cfg):
         try:
             pars = cfg['layout_standard']
         except KeyError:
             self.__setParamError('No <layout_standard> section found')
 
-        self.__section= 'layout_standard'
-	self.mpxCfg["xchips"]= self.__getParamNeeded(pars, "xchips", range(1,6))
-	self.mpxCfg["ychips"]= self.__getParamOptional(pars, "ychips", [1,2], 1)
 
-	self.mpxCfg["xgap"]= self.__getParamOptional(pars, "xgap", None, 0)
-	self.mpxCfg["ygap"]= self.__getParamOptional(pars, "ygap", None, 0)
+        # init for none layout
+        self.mpxCfg["xchips"] = self.mpxCfg["nchips"]
+        self.mpxCfg["ychips"] =1
+        self.mpxCfg["xgap"] = self.mpxCfg["ygap"] = 0            
+        self.mpxCfg["positions"] = []
 
-        # set the per chip rotation if any, only valid for maxipix without gap reconstruction
-        self.mpxCfg["rotations"]=[]
-        if self.mpxCfg["xgap"] == 0 and self.mpxCfg["ygap"] ==0:
-            for idx in range(self.mpxCfg["nchip"]):
-                name= "rot_%d"%(idx+1)
-                self.mpxCfg[name]= self.__getParamOptional(pars, name, 
-                                                          MpxRotationTypes, 0)
-                self.mpxCfg["rotations"].append(MpxRotation[self.mpxCfg[name]])
+        self.mpxCfg["layout"] = mpxLayout(self.__getParamNeeded(pars, "layout"))
+
+        # layout paramters for standard monolithic maxipix 2x2 or 5x5 with gap reconstruction
+        if self.mpxCfg["layout"] is  Maxipix.MaxipixReconstruction.L_2x2 or \
+               self.mpxCfg["layout"] is Maxipix.MaxipixReconstruction.L_5x1:
+            self.__section= 'layout_standard'
+
+            # xchips, ychips and xgap are mandatory
+            self.mpxCfg["xchips"]= self.__getParamNeeded(pars, "xchips", range(1,6))
+            self.mpxCfg["ychips"]= self.__getParamOptional(pars, "ychips", [1,2], 1)
+            
+            self.mpxCfg["xgap"]= self.__getParamNeeded(pars, "xgap", range(1,5))
+            self.mpxCfg["ygap"]= self.__getParamOptional(pars, "ygap", None, 0)
+            
+        # layout paramters for general reconstruction, position  are mandatory
+        # included L_FREE, a faster reconstruction when there is only rotation on chips
+        elif self.mpxCfg["layout"] is  Maxipix.MaxipixReconstruction.L_GENERAL or \
+             self.mpxCfg["layout"] is Maxipix.MaxipixReconstruction.L_FREE  :
+            self.__parseLayoutGeneralSection(cfg)
+            
+        elif self.mpxCfg["layout"] is Maxipix.MaxipixReconstruction.L_NONE :
+            pass
+        
+        else:
+            self.__setParamError('In <layout_standard> section "layout" not set correctly')
+
+
+    def __parseLayoutGeneralSection(self, cfg):
+        try:
+            pars = cfg['layout_general']
+        except KeyError:
+            self.__setParamError('No <layout_general> section found')
+
+        self.__section = 'layout_general'
+        self.mpxCfg["positions"] = []
+        for idx in range(self.mpxCfg["nchips"]):
+            position = Maxipix.MaxipixReconstruction.Position()
+
+            name = "rot_%d"%(idx+1)        
+            self.mpxCfg[name] = self.__getParamNeeded(pars, name, MpxRotationTypes)
+            position.rotation = MpxRotation[self.mpxCfg[name]]
+            self.mpxCfg["positions"].append(position)
+
+            name = "xc_%d"%(idx+1)
+            self.mpxCfg[name] = self.__getParamOptional(pars, name, range(0,2048),0)
+            position.origin.x = self.mpxCfg[name]
+            name = "yc_%d"%(idx+1)
+            self.mpxCfg[name] = self.__getParamOptional(pars, name, range(0,2048),0)
+            position.origin.y = self.mpxCfg[name]
             
             
     def __parseDacsSection(self, cfg):
@@ -233,13 +276,14 @@ if __name__=="__main__":
 	    print
 
 	cfg= MpxDetConfig(path= sys.argv[1], name= sys.argv[2])
+        mpxCfg = cfg.getMpxCfg()
 	print
 	print "> Path       =", cfg.getPath()
 	print "> ConfigName =", cfg.getName()
 	print "> FileName   =", cfg.getFilename()
 	print 
 	print "[detmodule]"
-	printDict(cfg.getMpxCfg())
+	printDict(mpxCfg)
 	print "ports =", str(cfg.getPriamPorts())
 	print "[calibration]"
 	print "thlnoise = ", str(cfg.getDacs().getThlNoise())
@@ -249,4 +293,8 @@ if __name__=="__main__":
         print "energy = ", cfg.getDacs().getEnergy()
 	print "[dacs]"
 	printDict(cfg.getDacs().getDacs(0))
-
+        print "[layout_standard]"
+        print "layout = ", mpxCfg["layout"]
+        if mpxCfg["layout"] is Maxipix.MaxipixReconstruction.L_GENERAL:
+            print "[layout_general]" 
+            print "positions = ", mpxCfg["positions"]

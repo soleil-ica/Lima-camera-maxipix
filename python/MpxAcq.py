@@ -1,7 +1,7 @@
 ############################################################################
 # This file is part of LImA, a Library for Image Acquisition
 #
-# Copyright (C) : 2009-2011
+# Copyright (C) : 2009-2014
 # European Synchrotron Radiation Facility
 # BP 220, Grenoble 38043
 # FRANCE
@@ -32,7 +32,6 @@ from MpxCommon import *
 import MpxDacs
 import MpxDetConfig
 import MpxChipConfig
-
 
 class MpxAcq:
     DEB_CLASS(DebModApplication, "MpxAcq")
@@ -210,6 +209,8 @@ class MpxAcq:
 	self.__pacq.setShutterTime(0.)
 
         # Ask Dacs obj to apply the new FSR registers (DACS values)
+        # with a startup energy
+        self.mpxDacs.setEnergy(self.mpxCfg["energy"])
 	self.mpxDacs.applyChipDacs(0)
 
         # Reconstruction can be not apply if requested
@@ -218,20 +219,53 @@ class MpxAcq:
     @DEB_MEMBER_FUNCT
     def setReconstructionActive(self,active):
 
-        #apply read config detector size
-        self.__mdet.setChipsRotation(self.mpxCfg["rotations"])
-	self.__mdet.setVersion(self.mpxCfg["version"])	
-        xgap = self.mpxCfg["xgap"];  ygap = self.mpxCfg["ygap"]
-        xchips = self.mpxCfg["xchips"]; ychips = self.mpxCfg["ychips"]
-        self.__mdet.setNbChip(xchips, ychips)        
-        self.__mdet.setPixelGap(xgap, ygap)
+        # #apply read config detector size
+        # self.__mdet.setChipsRotation(self.mpxCfg["rotations"])
+	# self.__mdet.setVersion(self.mpxCfg["version"])	
+        # xgap = self.mpxCfg["xgap"];  ygap = self.mpxCfg["ygap"]
+        # xchips = self.mpxCfg["xchips"]; ychips = self.mpxCfg["ychips"]
+        # self.__mdet.setNbChip(xchips, ychips)        
+        # self.__mdet.setPixelGap(xgap, ygap)
+        # # get the default reconstruction task (object) set from the read config parameters
+        # # but first inform the hwInt to no reconstruction
+        # if self.__reconstruct is not None:
+        #     del self.__reconstruct
+        # self.__hwInt.setReconstructionTask(None)            
+        # self.__reconstruct = self.__mdet.getReconstructionTask()
+
+
+        #
+        # LOLO: NEW CONFIG
+        #
+
         # get the default reconstruction task (object) set from the read config parameters
         # but first inform the hwInt to no reconstruction
         if self.__reconstruct is not None:
             del self.__reconstruct
-        self.__hwInt.setReconstructionTask(None)            
-        self.__reconstruct = self.__mdet.getReconstructionTask()
+        self.__hwInt.setReconstructionTask(None)
 
+        xchips = self.mpxCfg["xchips"]; ychips = self.mpxCfg["ychips"]
+        nchips = self.mpxCfg["nchips"]
+        
+        # test first if the reconstruction is  desactived then force to NONE
+        if not active:
+            layout = Maxipix.MaxipixReconstruction.L_NONE
+            # flatten detector
+            xchips = nchips; ychips = 1
+            xgap = ygap = 0
+            print " \t\t--> Reconstruction set OFF"
+        else:
+            xgap = self.mpxCfg["xgap"];  ygap = self.mpxCfg["ygap"]
+            layout = self.mpxCfg["layout"]
+            
+        self.__mdet.setChipsLayout(layout)
+	self.__mdet.setVersion(self.mpxCfg["version"])	
+        self.__mdet.setNbChip(xchips, ychips)        
+        self.__mdet.setPixelGap(xgap, ygap)
+        self.__mdet.setChipsPosition(self.mpxCfg["positions"])	
+
+        # must be called even if reconstruction is inactive or NONE, this update the image size
+        self.__reconstruct = self.__mdet.getReconstructionTask()       
         
         d_model = self.__mdet.getDetectorModel()
         
@@ -241,21 +275,12 @@ class MpxAcq:
             print "Image reconstruction is switched ON, model:" , d_model
             self.__hwInt.setReconstructionTask(self.__reconstruct)
         else:
+            # no reconstruction, tell the user why
             if active and self.__reconstruct is None:
                 print "Image reconstruction is switched OFF (active=true, config=off), model: ", d_model
             else:
                 print "Image reconstruction is switched OFF (active=false), model: ", d_model            
                 
-            # flatten detector if it's 2x2
-            if xchips == 2 and ychips == 2:
-                xchips = 4; ychips = 1
-                print " \t\t--> 2x2 flatten out to 4x1"
-            # remove the gap
-            xgap = ygap = 0
-                
-        # Update now det image size and this will call maxImageSizeChanged callback to update CtImage
-        self.__mdet.setNbChip(xchips, ychips)        
-        self.__mdet.setPixelGap(xgap, ygap)
 
     @DEB_MEMBER_FUNCT
     def loadChipConfig(self, name):
@@ -285,6 +310,7 @@ class MpxAcq:
         print "Resetting chip(s) pixels ..."
         exptime = self.__pacq.getExposureTime()
         nbframes = self.__pacq.getNbFrames()
+        if nbframes is 0: nbframes=1
         self.__pacq.setExposureTime(0.01)
         self.__pacq.setNbFrames(1)
         self.__pacq.startAcq()

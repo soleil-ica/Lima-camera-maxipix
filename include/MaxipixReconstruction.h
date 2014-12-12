@@ -1,7 +1,7 @@
 //###########################################################################
 // This file is part of LImA, a Library for Image Acquisition
 //
-// Copyright (C) : 2009-2011
+// Copyright (C) : 2009-2014
 // European Synchrotron Radiation Facility
 // BP 220, Grenoble 38043
 // FRANCE
@@ -37,21 +37,22 @@ namespace lima
     {
       DEB_CLASS_NAMESPC(DebModCamera, "MaxipixReconstruction", "Maxipix");
     public:
+
       struct Position
       {
-	Point		origin;
-	RotationMode	rotation;
+	Point origin;
+	RotationMode rotation;
       };
+
       typedef std::list<Position> PositionList;
 
-      enum Type {RAW,ZERO,DISPATCH,MEAN};
-      enum Model {M_2x2,M_5x1,M_FREE,M_GENERAL};
-      explicit MaxipixReconstruction(Model = M_5x1,Type = RAW);
+      enum Type {RAW, ZERO, DISPATCH, MEAN};
+      enum Layout {L_NONE, L_2x2, L_5x1, L_FREE, L_GENERAL};
+      explicit MaxipixReconstruction(Layout = L_NONE, Type = RAW);
       MaxipixReconstruction(const MaxipixReconstruction&);
       ~MaxipixReconstruction();
       
       void setType(Type);
-      void setModel(Model);
       void setXnYGapSpace(int xSpace,int ySpace);
       void setChipsRotation(const RotationModeList&);
       void setChipsPosition(const PositionList&);
@@ -59,16 +60,23 @@ namespace lima
       
       virtual Data process(Data &aData);
     private:
-      Size _getImageSize(int,int) const;
+      Size _getImageSize(int, int, int, int) const;
 
-      Type	mType;
-      Model	mModel;
-      int	mXSpace;
-      int	mYSpace;
-      RotationModeList	mChipsRotation;
-      PositionList	mChipsPosition;
+      Type	m_type;
+      Layout	m_layout;
+      int	m_xgap;
+      int	m_ygap;
+      PositionList	m_chips_position;
     };
 
+    inline std::ostream& operator <<(std::ostream& os, const MaxipixReconstruction::Position& p)
+      {
+	os << "<"
+	   << p.origin << ","
+	   << p.rotation
+	   << ">";
+	return os;
+      }
   } // namespace Maxipix
 } // namespace lima
 #endif	// MAXIPIXRECONSTRUCTION_H

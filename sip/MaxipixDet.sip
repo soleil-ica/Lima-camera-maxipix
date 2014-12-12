@@ -1,7 +1,7 @@
 //###########################################################################
 // This file is part of LImA, a Library for Image Acquisition
 //
-// Copyright (C) : 2009-2011
+// Copyright (C) : 2009-2014
 // European Synchrotron Radiation Facility
 // BP 220, Grenoble 38043
 // FRANCE
@@ -63,7 +63,9 @@ class MaxipixDet
     // -- geometry
     void setNbChip(int xchip, int ychip);
     void setPixelGap(int xgap, int ygap);
-    void setChipsRotation(const RotationModeList &rotation);
+    void setChipsPosition(const MaxipixReconstruction::PositionList& positions);
+    void setChipsLayout(const Maxipix::MaxipixReconstruction::Layout& layout);
+
     // -- detector info
     void getImageSize(Size& size /Out/);
     void getPixelSize(double& x_size /Out/, double& y_size /Out/);

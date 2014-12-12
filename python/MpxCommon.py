@@ -1,7 +1,7 @@
 ############################################################################
 # This file is part of LImA, a Library for Image Acquisition
 #
-# Copyright (C) : 2009-2011
+# Copyright (C) : 2009-2014
 # European Synchrotron Radiation Facility
 # BP 220, Grenoble 38043
 # FRANCE
@@ -19,8 +19,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 ############################################################################
-from limamaxipix import Maxipix
 from Lima import Core
+from Lima import Espia
+from limamaxipix import Maxipix
 
 import types
 
@@ -44,7 +45,13 @@ MpxRotation= {0: Core.Rotation_0,
               -2: Core.Rotation_180,
               -3: Core.Rotation_90
               }
-
+MpxLayout= [Maxipix.MaxipixReconstruction.L_NONE,
+            Maxipix.MaxipixReconstruction.L_2x2,
+            Maxipix.MaxipixReconstruction.L_5x1,
+            Maxipix.MaxipixReconstruction.L_FREE,
+            Maxipix.MaxipixReconstruction.L_GENERAL]
+MpxLayoutTypes= ["L_NONE", "L_2X2", "L_5X1", "L_FREE", "L_GENERAL"]
+             
 def mpxPolarity(polarity):
     if type(polarity)==types.StringType:
 	if polarity.upper() not in MpxPolarityTypes:
@@ -62,7 +69,7 @@ def mpxPolarity(polarity):
 def mpxVersion(version):
     if type(version)==types.StringType:
 	if version.upper() not in MpxTypes:
-	    raise MpxError("Invalid Maxipix Version String <%s>"%version)
+	    raise MpxError("Invalid Maxipix Version string <%s>"%version)
 	return MpxVersion[MpxTypes.index(version.upper())]
     elif type(version)==types.IntType:
 	if version not in range(len(MpxVersion)):
@@ -72,6 +79,20 @@ def mpxVersion(version):
 	if version not in MpxVersion:
 	    raise MpxError("Invalid Maxipix Version <%s>"%str(version))
 	return version
+
+def mpxLayout(layout):
+    if type(layout)==types.StringType:
+	if layout.upper() not in MpxLayoutTypes:
+	    raise MpxError("Invalid Maxipix Layout string <%s>"%layout)
+	return MpxLayout[MpxLayoutTypes.index(layout.upper())]
+    elif type(layout)==types.IntType:
+	if layout not in range(len(MpxLayout)):
+	    raise MpxError("Invalid Maxipix Layout value <%d>"%layout)
+	return MpxLayout[layout]
+    else:	
+	if layout not in MpxLayout:
+	    raise MpxError("Invalid Maxipix Layout <%s>"%str(layout))
+	return layout
 
 class MpxError(Exception):
     def __init__(self, msg):

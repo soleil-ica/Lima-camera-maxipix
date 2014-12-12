@@ -1,7 +1,7 @@
 //###########################################################################
 // This file is part of LImA, a Library for Image Acquisition
 //
-// Copyright (C) : 2009-2011
+// Copyright (C) : 2009-2014
 // European Synchrotron Radiation Facility
 // BP 220, Grenoble 38043
 // FRANCE
@@ -61,7 +61,9 @@ class MaxipixDet : public HwMaxImageSizeCallbackGen
     // -- geometry
     void setNbChip(int xchip, int ychip);
     void setPixelGap(int xgap, int ygap);
-    void setChipsRotation(const std::list<RotationMode>&);
+    void setChipsPosition(const MaxipixReconstruction::PositionList& positions);
+    void setChipsLayout(const MaxipixReconstruction::Layout& layout);
+
     // -- detector info
     void getImageSize(Size& size);
     void getPixelSize(double& x_size, double& y_size);
@@ -77,16 +79,15 @@ class MaxipixDet : public HwMaxImageSizeCallbackGen
     virtual void setMaxImageSizeCallbackActive(bool cb_active);
 
   private:
-    void _updateSize();
-
-    int 			m_xchip, m_ychip, m_nchip;
-    int 			m_xgap, m_ygap;
-    Size 			m_size;
-    ImageType 			m_type;
-    Version 			m_version;
-    bool 			m_mis_cb_act;
-    bool 			m_no_reconstruction;
-    std::list<RotationMode> 	m_rotations;
+    int 			         m_xchip, m_ychip, m_nchips;
+    int 			         m_xgap, m_ygap;
+    Size 			         m_size;
+    ImageType 			         m_type;
+    Version 			         m_version;
+    bool 			         m_mis_cb_act;
+    bool 			         m_no_reconstruction;
+    MaxipixReconstruction::Layout        m_layout;
+    MaxipixReconstruction::PositionList  m_positions;
 };
 
 } // namespace Maxipix

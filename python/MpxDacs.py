@@ -300,7 +300,7 @@ class MpxDacs:
 	self.__dacs = []
 	self.__thlnoise = []
         self.__thlxray = []
-        self.__energy = 0
+        self.__energy_calib = 0
         self.__lastenergy = 0
         
 	for ichip in range(self.nchip):
@@ -358,17 +358,17 @@ class MpxDacs:
         return self.__thlxray
     
     def setEnergyCalibration(self, energy):
-        self.__energy = energy
-        # set the default energy to apply valid chip thresholds
-        self.setEnergy(energy)
+        self.__energy_calib = energy
         
     def getEnergyCalibration(self):
-        return self.__energy
+        return self.__energy_calib
 
     def setEnergy(self, energy):
+        print "Energy =", energy
         for idx in range(self.nchip):
-            val = self.__thlnoise[idx]+( (self.__thlxray[idx] - self.__thlxray[idx])* energy/self.__energy )
+            val = self.__thlnoise[idx]+( (self.__thlxray[idx] - self.__thlnoise[idx])* energy/self.__energy_calib )
             self.__dacs[idx].setOneDac("thl", val)
+            print " thl #",idx," = ",val
         self.__lastenergy = energy
 
     def getEnergy(self):
