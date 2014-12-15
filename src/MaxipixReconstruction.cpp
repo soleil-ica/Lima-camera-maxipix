@@ -627,8 +627,8 @@ lima::Size MaxipixReconstruction::getImageSize() const
 
 lima::Size MaxipixReconstruction::_getImageSize(int x_chip,int y_chip, int x_gap, int y_gap) const
 {
-  int w= x_chip*256 + (x_chip-1)*x_gap;
-  int h= y_chip*256 + (y_chip-1)*y_gap;
+  int w= x_chip*MAXIPIX_NB_COLUMN + (x_chip-1)*x_gap;
+  int h= y_chip*MAXIPIX_NB_LINE + (y_chip-1)*y_gap;
   return Size(w, h);
 }
 
@@ -818,7 +818,7 @@ Data MaxipixReconstruction::process(Data &aData)
 	    default:
 	      {
 		unsigned char* src = ((unsigned char*)aData.data()) + chip_id * MAXIPIX_NB_COLUMN * depth;
-		for(int ligne_id = 0;ligne_id < MAXIPIX_NB_LINE;++ligne_id,src += src_line_stride,dst += dst_line_stride)
+		for(int line_id = 0;line_id < MAXIPIX_NB_LINE;++line_id,src += src_line_stride,dst += dst_line_stride)
 		  memcpy(dst,src,MAXIPIX_NB_COLUMN * depth);
 	      }
 	      break;

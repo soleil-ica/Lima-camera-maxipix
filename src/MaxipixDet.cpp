@@ -129,10 +129,10 @@ void MaxipixDet::getDetectorModel(std::string& type)
 	os << m_xchip << "x" << m_ychip << "(gap:" << m_xgap << "x" << m_ygap << ")-";
 	break;
       case MaxipixReconstruction::L_FREE:
-        os << m_nchips << "x" << 1 << "(chip(s) in rotation)-";      
+        os << m_nchips << "x" << 1 << " chip(s) with rotation (FREE layout)-";      
 	break;
       case MaxipixReconstruction::L_GENERAL:
-	os << m_nchips << "(chip(s) in position)-";
+	os << m_nchips << " chip(s) with position(GENERAL layout)-";
 	break;
     }
 

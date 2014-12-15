@@ -54,7 +54,6 @@ namespace lima
       
       void setType(Type);
       void setXnYGapSpace(int xSpace,int ySpace);
-      void setChipsRotation(const RotationModeList&);
       void setChipsPosition(const PositionList&);
       Size getImageSize() const;
       

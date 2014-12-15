@@ -364,11 +364,10 @@ class MpxDacs:
         return self.__energy_calib
 
     def setEnergy(self, energy):
-        print "Energy =", energy
         for idx in range(self.nchip):
             val = self.__thlnoise[idx]+( (self.__thlxray[idx] - self.__thlnoise[idx])* energy/self.__energy_calib )
             self.__dacs[idx].setOneDac("thl", val)
-            print " thl #",idx," = ",val
+            #print " thl #",idx," = ",val
         self.__lastenergy = energy
 
     def getEnergy(self):

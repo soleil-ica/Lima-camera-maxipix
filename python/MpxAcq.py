@@ -179,7 +179,7 @@ class MpxAcq:
 	finally:
 		hwInterface.setConfigFlag(False)
         
-        print "\n\nEnd of configuration, Maxipix is ready !"
+        print "\n\nEnd of configuration, Maxipix is Ok !"
 
     @DEB_MEMBER_FUNCT
     def loadDetConfig(self, name, reconstruction):
@@ -212,31 +212,13 @@ class MpxAcq:
         # with a startup energy
         self.mpxDacs.setEnergy(self.mpxCfg["energy"])
 	self.mpxDacs.applyChipDacs(0)
-
+        print "Startup energy threshold = %.2f KeV"%self.mpxCfg["energy"]
+        
         # Reconstruction can be not apply if requested
         self.setReconstructionActive(reconstruction)
 
     @DEB_MEMBER_FUNCT
     def setReconstructionActive(self,active):
-
-        # #apply read config detector size
-        # self.__mdet.setChipsRotation(self.mpxCfg["rotations"])
-	# self.__mdet.setVersion(self.mpxCfg["version"])	
-        # xgap = self.mpxCfg["xgap"];  ygap = self.mpxCfg["ygap"]
-        # xchips = self.mpxCfg["xchips"]; ychips = self.mpxCfg["ychips"]
-        # self.__mdet.setNbChip(xchips, ychips)        
-        # self.__mdet.setPixelGap(xgap, ygap)
-        # # get the default reconstruction task (object) set from the read config parameters
-        # # but first inform the hwInt to no reconstruction
-        # if self.__reconstruct is not None:
-        #     del self.__reconstruct
-        # self.__hwInt.setReconstructionTask(None)            
-        # self.__reconstruct = self.__mdet.getReconstructionTask()
-
-
-        #
-        # LOLO: NEW CONFIG
-        #
 
         # get the default reconstruction task (object) set from the read config parameters
         # but first inform the hwInt to no reconstruction
@@ -253,7 +235,6 @@ class MpxAcq:
             # flatten detector
             xchips = nchips; ychips = 1
             xgap = ygap = 0
-            print " \t\t--> Reconstruction set OFF"
         else:
             xgap = self.mpxCfg["xgap"];  ygap = self.mpxCfg["ygap"]
             layout = self.mpxCfg["layout"]

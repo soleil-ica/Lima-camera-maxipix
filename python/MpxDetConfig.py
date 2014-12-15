@@ -20,8 +20,8 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 ############################################################################
 import os
-import libconfig
 import MpxDacs
+import ConfigDict
 from MpxCommon import *
 
 class MpxDetConfig:
@@ -70,15 +70,22 @@ class MpxDetConfig:
             raise MpxError("No read permission on <%s>"%fname)
 
         try:
-            cfg = libconfig.Config(fname)
-            cfg.load()
-        except RuntimeError:
-            raise MpxError("<%s> is not a valid libconfig file"%fname)
+            cfg = ConfigDict.ConfigDict()
+            cfg.read(fname)
+            
+        except:
+            raise MpxError("<%s> is not a valid INI file"%fname)
 
         try:
             config = cfg['config']
         except KeyError:
-            raise MpxError("<%s> is not a valid maxipix file"%fname)
+            raise MpxError("<%s> is not a valid configuration file, missing section '[config]'"%fname)
+        try:
+            if config["version"] != 1.0:
+                raise MpxError("<%s> is not a valid configuration file, 'version' is not 1.0"%fname)
+        except KeyError:
+            raise MpxError("<%s> is not a valid configuration file, in section [config] entry 'version'is missing"%fname)
+            
         
         return cfg
 
