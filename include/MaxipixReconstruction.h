@@ -22,10 +22,10 @@
 #ifndef MAXIPIXRECONSTRUCTION_H
 #define MAXIPIXRECONSTRUCTION_H
 
-#include "LinkTask.h"
+#include "processlib/LinkTask.h"
 #include <list>
-#include "Constants.h"
-#include <SizeUtils.h>
+#include "lima/Constants.h"
+#include "lima/SizeUtils.h"
 
 namespace lima
 {

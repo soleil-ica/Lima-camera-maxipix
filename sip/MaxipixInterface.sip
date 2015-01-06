@@ -25,7 +25,7 @@ namespace Maxipix
 
 %TypeHeaderCode
 
-#include "HwInterface.h"
+#include "lima/HwInterface.h"
 #include "EspiaBufferMgr.h"
 #include "MaxipixInterface.h"
 #include "MaxipixDet.h"

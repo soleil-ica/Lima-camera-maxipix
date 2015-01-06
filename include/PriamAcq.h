@@ -27,7 +27,7 @@
 
 #include "PriamSerial.h"
 #include "MaxipixDet.h"
-#include "Constants.h"
+#include "lima/Constants.h"
 
 namespace lima {
 namespace Maxipix {

@@ -22,8 +22,8 @@
 #ifndef MPXINTERFACE_H
 #define MPXINTERFACE_H
 
-#include "HwInterface.h"
-#include "HwReconstructionCtrlObj.h"
+#include "lima/HwInterface.h"
+#include "lima/HwReconstructionCtrlObj.h"
 #include "EspiaBufferMgr.h"
 #include "MaxipixDet.h"
 #include "PriamAcq.h"

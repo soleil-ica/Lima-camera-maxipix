@@ -22,10 +22,10 @@
 #ifndef MAXIPIXDET_H
 #define MAXIPIXDET_H
 
-#include "HwMaxImageSizeCallback.h"
+#include "lima/HwMaxImageSizeCallback.h"
 #include "MaxipixReconstruction.h"
-#include "SizeUtils.h"
-#include "Debug.h"
+#include "lima/SizeUtils.h"
+#include "lima/Debug.h"
 
 namespace lima {
 namespace Maxipix {

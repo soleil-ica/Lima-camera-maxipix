@@ -23,7 +23,7 @@
 #define _PRIAM_SERIAL_H
 
 #include "EspiaSerialLine.h"
-#include "ThreadUtils.h"
+#include "lima/ThreadUtils.h"
 #include <string>
 
 namespace lima {

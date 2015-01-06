@@ -30,7 +30,7 @@ namespace Maxipix {
 #include "PriamSerial.h"
 #include "PriamAcq.h"
 #include "MaxipixDet.h"
-#include "Constants.h"
+#include "lima/Constants.h"
 
 using namespace lima;
 %End

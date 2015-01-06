@@ -119,7 +119,7 @@ namespace Maxipix
   {
 %TypeHeaderCode
 #include "MaxipixReconstruction.h"
-#include "Exceptions.h"
+#include "lima/Exceptions.h"
 using namespace lima;
 using namespace Maxipix;
 %End

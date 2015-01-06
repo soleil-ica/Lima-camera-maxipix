@@ -26,9 +26,9 @@ namespace Maxipix {
 %TypeHeaderCode
 
 #include "MaxipixDet.h"
-#include "HwMaxImageSizeCallback.h"
+#include "lima/HwMaxImageSizeCallback.h"
 #include "MaxipixReconstruction.h"
-#include "Constants.h"
+#include "lima/Constants.h"
 
 using namespace lima;
 %End
