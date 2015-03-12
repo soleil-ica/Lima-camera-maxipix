@@ -807,9 +807,9 @@ Data MaxipixReconstruction::process(Data &aData)
 	    case Rotation_90:
 	      for(int col_id = 0;col_id < MAXIPIX_NB_COLUMN;++col_id)
 		{
-		  unsigned char* src = ((unsigned char*)aData.data()) + (chip_id * MAXIPIX_NB_COLUMN * depth + 
-									 (MAXIPIX_NB_LINE * src_line_stride) - 
-									 (MAXIPIX_NB_COLUMN + col_id) * depth);
+		  unsigned char* src = ((unsigned char*)aData.data()) + (chip_id * MAXIPIX_NB_COLUMN * depth +
+									 ((MAXIPIX_NB_LINE - 1) * src_line_stride) +
+									 col_id * depth);
 		  unsigned char* local_dst = dst + dst_line_stride * col_id;
 		  for(int line_id = 0;line_id < MAXIPIX_NB_LINE;++line_id,src -= src_line_stride,local_dst += depth)
 		    memcpy(local_dst,src,depth);
