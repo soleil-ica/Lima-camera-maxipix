@@ -1,7 +1,7 @@
 //###########################################################################
 // This file is part of LImA, a Library for Image Acquisition
 //
-// Copyright (C) : 2009-2011
+// Copyright (C) : 2009-2015
 // European Synchrotron Radiation Facility
 // BP 220, Grenoble 38043
 // FRANCE
@@ -25,14 +25,10 @@
 #include "lima/HwInterface.h"
 #include "lima/HwReconstructionCtrlObj.h"
 #include "EspiaBufferMgr.h"
-#include "MaxipixDet.h"
-#include "PriamAcq.h"
+#include "MaxipixCamera.h"
 
-namespace lima
-{
-
-namespace Maxipix
-{
+namespace lima {
+namespace Maxipix {
 
 /*******************************************************************
  * \class DetInfoCtrlObj
@@ -44,7 +40,7 @@ class DetInfoCtrlObj : public HwDetInfoCtrlObj
   DEB_CLASS_NAMESPC(DebModCamera, "DetInfoCtrlObj", "Maxipix");
 
   public:
-    DetInfoCtrlObj(MaxipixDet& det);
+    DetInfoCtrlObj(Camera& cam);
     virtual ~DetInfoCtrlObj();
 
     virtual void getMaxImageSize(Size& size);
@@ -62,7 +58,7 @@ class DetInfoCtrlObj : public HwDetInfoCtrlObj
     virtual void unregisterMaxImageSizeCallback(HwMaxImageSizeCallback& cb);
 
   private:
-    MaxipixDet& m_det;
+    Camera& m_cam;
 };
 
 
@@ -114,7 +110,7 @@ class SyncCtrlObj : public HwSyncCtrlObj
     DEB_CLASS_NAMESPC(DebModCamera, "SyncCtrlObj", "Maxipix");
 
   public:
-    SyncCtrlObj(Espia::Acq& acq, PriamAcq& priam);
+    SyncCtrlObj(Camera& cam);
     virtual ~SyncCtrlObj();
 
     virtual bool checkTrigMode(TrigMode trig_mode);
@@ -134,8 +130,7 @@ class SyncCtrlObj : public HwSyncCtrlObj
 
   private:
     bool _checkTrigMode(TrigMode trig_modei,bool with_acq_mode = false);
-    Espia::Acq& m_acq;
-    PriamAcq& m_priam;
+    Camera& m_cam;
 };
 
 /*******************************************************************
@@ -148,7 +143,7 @@ class ShutterCtrlObj : public HwShutterCtrlObj
   DEB_CLASS_NAMESPC(DebModCamera, "ShutterCtrlObj", "Maxipix");
 
 public:
-	ShutterCtrlObj(PriamAcq& priam);
+	ShutterCtrlObj(Camera& cam);
 	virtual ~ShutterCtrlObj();
 
 	virtual bool checkMode(ShutterMode shut_mode) const;
@@ -165,7 +160,7 @@ public:
 	virtual void getCloseTime(double& shut_close_time) const;
 
  private:
-	PriamAcq& m_priam;
+    Camera& m_cam;
 };
 
 
@@ -173,17 +168,19 @@ public:
  * \class ReconstructionCtrlObj
  * \brief Control object providing reconstruction interface
  *******************************************************************/
-class ReconstructionCtrlObj : public HwReconstructionCtrlObj 
-{
-        DEB_CLASS_NAMESPC(DebModCamera, "ReconstructionCtrlObj", "Maxipix");
+class ReconstructionCtrlObj: public HwReconstructionCtrlObj {
+DEB_CLASS_NAMESPC(DebModCamera, "ReconstructionCtrlObj", "Maxipix");
 public:
-        ReconstructionCtrlObj(PriamAcq& priam);	
-        ~ReconstructionCtrlObj();	
-	virtual LinkTask* getReconstructionTask() {return m_reconstruct_task;}	
+	ReconstructionCtrlObj();
+	~ReconstructionCtrlObj();
+
+	virtual LinkTask* getReconstructionTask() {
+		return m_reconstruct_task;
+	}
 	void setReconstructionTask(LinkTask* task);
- private :
+
+private:
 	LinkTask* m_reconstruct_task;
-	PriamAcq& m_priam;
 };
 
 
@@ -191,13 +188,11 @@ public:
  * \class Interface
  * \brief Maxipix hardware interface
  *******************************************************************/
-class Interface : public HwInterface
-{
-	DEB_CLASS_NAMESPC(DebModCamera, "Interface", "Maxipix");
+class Interface: public HwInterface {
+DEB_CLASS_NAMESPC(DebModCamera, "Interface", "Maxipix");
 
- public:
-	Interface(Espia::Acq& acq, BufferCtrlMgr& buffer_mgr, 
-		  PriamAcq& priam, MaxipixDet& det);
+public:
+	Interface(BufferCtrlMgr& buffer_mgr, Camera& cam);
 	virtual ~Interface();
 
 	virtual void getCapList(CapList&) const;
@@ -209,39 +204,39 @@ class Interface : public HwInterface
 	virtual void getStatus(StatusType& status);
 	virtual int getNbHwAcquiredFrames();
 	void updateValidRanges();
-        void setConfigFlag(bool flag);
-	
+	void setConfigFlag(bool flag);
+	void setAcqMode(AcqMode acqMode);
+
 	void setReconstructionTask(LinkTask*);
- private:
-	class AcqEndCallback : public Espia::AcqEndCallback
-	{
-		DEB_CLASS_NAMESPC(DebModCamera, "Interface::AcqEndCallback", 
-				  "Maxipix");
+private:
+//	class AcqEndCallback: public Espia::AcqEndCallback {
+//	DEB_CLASS_NAMESPC(DebModCamera, "Interface::AcqEndCallback",
+//			"Maxipix");
+//
+//	public:
+//		AcqEndCallback(Camera& cam);
+//		virtual ~AcqEndCallback();
+//
+//	protected:
+//		virtual void acqFinished(const HwFrameInfoType& /*finfo*/);
+//	private:
+//		Camera& m_cam;
+//	};
 
-	public:
-		AcqEndCallback(PriamAcq& priam);
-		virtual ~AcqEndCallback();
+//	Espia::Acq& m_acq;
+	Camera m_cam;
+	BufferCtrlMgr& m_buffer_mgr;
+//	PriamAcq& m_priam;
+//	AcqEndCallback m_acq_end_cb;
+	CapList m_cap_list;
+	DetInfoCtrlObj m_det_info;
+	BufferCtrlObj m_buffer;
+	SyncCtrlObj m_sync;
+	ShutterCtrlObj m_shutter;
+	ReconstructionCtrlObj m_reconstruction;
+	bool m_prepare_flag;
 
-	protected:
-		virtual void acqFinished(const HwFrameInfoType& /*finfo*/);
-	private:
-		PriamAcq& m_priam;
-	};
-
-	Espia::Acq&	m_acq;
-	BufferCtrlMgr&	m_buffer_mgr;
-	PriamAcq&	m_priam;
-	AcqEndCallback  m_acq_end_cb;
-
-	CapList                m_cap_list;
-	DetInfoCtrlObj         m_det_info;
-	BufferCtrlObj          m_buffer;
-	SyncCtrlObj            m_sync;
-	ShutterCtrlObj         m_shutter;
-	ReconstructionCtrlObj  m_reconstruction;
-
- 	bool           m_prepare_flag;	
-        bool           m_config_flag; 
+	bool m_config_flag;
 };
 
 } // namespace Maxipix

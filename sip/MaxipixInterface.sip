@@ -23,22 +23,18 @@
 namespace Maxipix
 {
 
+class DetInfoCtrlObj : HwDetInfoCtrlObj
+{
 %TypeHeaderCode
 
 #include "lima/HwInterface.h"
 #include "EspiaBufferMgr.h"
 #include "MaxipixInterface.h"
-#include "MaxipixDet.h"
-#include "PriamAcq.h"
+#include "MaxipixCamera.h"
 
-using namespace lima;
 %End
-
-
-class DetInfoCtrlObj : HwDetInfoCtrlObj
-{
   public:
-    DetInfoCtrlObj(Maxipix::MaxipixDet& det);
+    DetInfoCtrlObj(Maxipix::Camera& cam);
     virtual ~DetInfoCtrlObj();
 
     virtual void getMaxImageSize(Size& size /Out/);
@@ -59,6 +55,14 @@ class DetInfoCtrlObj : HwDetInfoCtrlObj
 
 class BufferCtrlObj : HwBufferCtrlObj
 {
+%TypeHeaderCode
+
+#include "lima/HwInterface.h"
+#include "EspiaBufferMgr.h"
+#include "MaxipixInterface.h"
+#include "MaxipixCamera.h"
+
+%End
   public:
     BufferCtrlObj(BufferCtrlMgr& buffer_mgr);
     virtual ~BufferCtrlObj();
@@ -87,8 +91,16 @@ class BufferCtrlObj : HwBufferCtrlObj
 
 class SyncCtrlObj : HwSyncCtrlObj
 {
+%TypeHeaderCode
+
+#include "lima/HwInterface.h"
+#include "EspiaBufferMgr.h"
+#include "MaxipixInterface.h"
+#include "MaxipixCamera.h"
+
+%End
   public:
-    SyncCtrlObj(Espia::Acq& acq, Maxipix::PriamAcq& priam);
+    SyncCtrlObj(Maxipix::Camera& cam);
     virtual ~SyncCtrlObj();
 
     virtual bool checkTrigMode(TrigMode trig_mode);
@@ -110,8 +122,16 @@ class SyncCtrlObj : HwSyncCtrlObj
 
 class ShutterCtrlObj : HwShutterCtrlObj
 {
+%TypeHeaderCode
+
+#include "lima/HwInterface.h"
+#include "EspiaBufferMgr.h"
+#include "MaxipixInterface.h"
+#include "MaxipixCamera.h"
+
+%End
   public:
-	ShutterCtrlObj(Maxipix::PriamAcq& priam);
+	ShutterCtrlObj(Maxipix::Camera& cam);
 	virtual ~ShutterCtrlObj();
 
 	virtual bool checkMode(ShutterMode shut_mode);
@@ -130,15 +150,20 @@ class ShutterCtrlObj : HwShutterCtrlObj
 
 class Interface : HwInterface
 {
+%TypeHeaderCode
+
+#include "lima/HwInterface.h"
+#include "EspiaBufferMgr.h"
+#include "MaxipixInterface.h"
+#include "MaxipixCamera.h"
+
+%End
  public:
-	Interface(Espia::Acq& acq /KeepReference/,
-		  BufferCtrlMgr& buffer_mgr /KeepReference/, 
-		  Maxipix::PriamAcq& acq /KeepReference/,
-		  Maxipix::MaxipixDet& det /KeepReference/);
+	Interface(BufferCtrlMgr& buffer_mgr /KeepReference/, Maxipix::Camera& cam /KeepReference/);
 	virtual ~Interface();
 
 //	virtual void getCapList(CapList&) const;
-        virtual void getCapList(std::vector<HwCap> &cap_list /Out/) const;
+    virtual void getCapList(std::vector<HwCap> &cap_list /Out/) const;
 
 	virtual void reset(HwInterface::ResetLevel reset_level);
 	virtual void prepareAcq();
@@ -148,7 +173,8 @@ class Interface : HwInterface
 	virtual int getNbHwAcquiredFrames();
 	void updateValidRanges();	
 	void setConfigFlag(bool flag);
-	void setReconstructionTask(LinkTask*);
+	void setAcqMode(AcqMode acqMode);
+ 	void setReconstructionTask(LinkTask*);
 };
 
 }; // namespace Maxipix

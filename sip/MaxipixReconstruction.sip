@@ -25,7 +25,6 @@
 %TypeHeaderCode
 #include <list>
 #include <MaxipixReconstruction.h>
-using namespace lima;
 using namespace Maxipix;
 %End
 

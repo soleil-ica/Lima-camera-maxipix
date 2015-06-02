@@ -1,7 +1,7 @@
 ############################################################################
 # This file is part of LImA, a Library for Image Acquisition
 #
-# Copyright (C) : 2009-2011
+# Copyright (C) : 2009-2013
 # European Synchrotron Radiation Facility
 # BP 220, Grenoble 38043
 # FRANCE
@@ -19,47 +19,44 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 ############################################################################
-
-maxipix-objs := PriamSerial.o PriamAcq.o PixelArray.o
-maxipix-objs += MaxipixReconstruction.o MaxipixCamera.o MaxipixInterface.o   
-maxipix-objs += MpxDetConfig.o MpxCommon.o MpxChipConfig.o MpxDacs.o    
-
-SRCS = $(maxipix-objs:.o=.cpp)
-
+include ../../../config.inc
 include ../../common/espia/include/espia.inc
 
+SRCS = test.cpp  test2.cpp
+
+CXXFLAGS = -I../include \
+		   -I../tools/cpp \
+	        -Wall -pthread -g
 INCLUDES = -I../include \
-		   -I../tools/src \
+                   -I../tools/src \
            -I../../../common/include \
            -I../../../hardware/include \
            -I../../common/espia/include \
            -I$(ESPIA_DRV_INCL) \
-	       -I../../../third-party/Processlib/core/include \
-	       -I../../../third-party/libconfig/lib
+               -I../../../third-party/Processlib/core/include \
+               -I../../../third-party/libconfig/lib
 
-CXXFLAGS += $(INCLUDES) -fPIC -Wall -pthread 
-#CXXFLAGS += -std=c++0x
+LDFLAGS = -pthread -L../../../build  -L../../../third-party/Processlib/build -L$(ESPIA_DRV_LIB)
+LDLIBS = -llimacore  -lprocesslib -llimaespia -lespia 
 
-all: tools Maxipix.o 
+test-progs = test test2
 
-tools:
-	make all -C ../tools/src
+all: 	$(test-progs)
 
-Maxipix.o: $(maxipix-objs)
-	ld -o $@ -r $+  ../tools/src/libINIReader.o
+test:		test.o ../tools/cpp/libINIReader.o
+	$(CXX) $(LDFLAGS) -o $@ $+ $(LDLIBS)
+
+test2:		test2.o ../src/Maxipix.o
+	$(CXX) $(LDFLAGS) -o $@ $+ $(LDLIBS)
 
 clean:
-	rm -f Maxipix.o $(maxipix-objs) *.P
+	rm -f *.o *.P test test2
 
 %.o : %.cpp
-	$(COMPILE.cpp) -MD $(CXXFLAGS) -o $@ $<
+	$(COMPILE.cpp) -MD $(CXXFLAGS) $(INCLUDES) -o $@ $<
 	@cp $*.d $*.P; \
 	sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' \
 	-e '/^$$/ d' -e 's/$$/ :/' < $*.d >> $*.P; \
 	rm -f $*.d
 
 -include $(SRCS:.cpp=.P)
-
-.PHONY: check-syntax
-check-syntax:
-	$(CXX) -Wall -Wextra -fsyntax-only $(CXXFLAGS) $(CHK_SOURCES)

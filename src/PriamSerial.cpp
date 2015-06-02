@@ -70,234 +70,218 @@ const PriamSerial::PriamCodeType PriamSerial::PriamLutCode[] = {
     {(short)PLUT_FF5, "ff5", 0x0f, -1, 0x8f, -1}
 };
 
-const PriamSerial::PriamCodeType PriamSerial::PriamSerTxCode[] = {
-    {(short)PSER_MATRIX, "matrix", 0x10, 114688, 0x90, 114688},
-    {(short)PSER_FSR, "FSR", 0x91, 32, 0xff, 3}
-};
+const PriamSerial::PriamCodeType PriamSerial::PriamSerTxCode[] = { {
+		(short) PSER_MATRIX, "matrix", 0x10, 114688, 0x90, 114688 }, {
+		(short) PSER_FSR, "FSR", 0x91, 32, 0xff, 3 } };
 
-PriamSerial::PriamSerial(Espia::SerialLine &espia_serial)
-  :m_espia_serial(espia_serial), m_mutex(MutexAttr::Normal)
-{
-    DEB_CONSTRUCTOR();
-    ostringstream os;
-    os << "Dev#" << espia_serial.getDev().getDevNb();
-    DEB_SET_OBJ_NAME(os.str());
+PriamSerial::PriamSerial(Espia::SerialLine &espia_serial) :
+		m_espia_serial(espia_serial), m_mutex(MutexAttr::Normal) {
+	DEB_CONSTRUCTOR();
+	ostringstream os;
+	os << "Dev#" << espia_serial.getDev().getDevNb();
+	DEB_SET_OBJ_NAME(os.str());
 }
 
-PriamSerial::~PriamSerial()
-{
-    DEB_DESTRUCTOR();
+PriamSerial::~PriamSerial() {
+	DEB_DESTRUCTOR();
 }
 
-void PriamSerial::writeRegister(PriamRegister reg,const string& buffer)
-{
-    DEB_MEMBER_FUNCT();
+void PriamSerial::writeRegister(PriamRegister reg, const string& buffer) {
+	DEB_MEMBER_FUNCT();
 
-    PriamCodeType wreg;
-    string rbuf;
+	PriamCodeType wreg;
+	string rbuf;
 
-    wreg= PriamRegCode[reg];
+	wreg = PriamRegCode[reg];
 
-    if (wreg.writeCode==0xff)
-	THROW_HW_ERROR(InvalidValue) <<  "Priam register " << reg << " (" 
-				     << wreg.name << ") is not writable";
+	if (wreg.writeCode == 0xff)
+		THROW_HW_ERROR(InvalidValue) << "Priam register " << reg << " ("
+				<< wreg.name << ") is not writable";
 
-    if ((wreg.writeSize>0)&&(buffer.size()!=(unsigned long)wreg.writeSize))
-	THROW_HW_ERROR(InvalidValue) << "Wrong buffer size for Priam register";
+	if ((wreg.writeSize > 0)
+			&& (buffer.size() != (unsigned long) wreg.writeSize))
+		THROW_HW_ERROR(InvalidValue) << "Wrong buffer size for Priam register";
 
-    DEB_TRACE() << "write" << DEB_VAR2(wreg.name, buffer);
+	DEB_TRACE() << "write" << DEB_VAR2(wreg.name, buffer);
 
-    // Lock here the serial write/read acess to the priam to avoid deadlock due to concurrent access
-    AutoMutex lock(m_mutex);
-    _writeCommand(wreg.writeCode, buffer);
-    _readAnswer(wreg.writeCode, 0, rbuf);
+	// Lock here the serial write/read acess to the priam to avoid deadlock due to concurrent access
+	AutoMutex lock(m_mutex);
+	_writeCommand(wreg.writeCode, buffer);
+	_readAnswer(wreg.writeCode, 0, rbuf);
 }
 
-void PriamSerial::readRegister(PriamRegister reg,string& buffer, long size) const
-{
-    DEB_MEMBER_FUNCT();
+void PriamSerial::readRegister(PriamRegister reg, string& buffer,
+		long size) const {
+	DEB_MEMBER_FUNCT();
 
-    long rsize;
-    PriamCodeType rreg;
+	long rsize;
+	PriamCodeType rreg;
 
-    rreg= PriamRegCode[reg];
+	rreg = PriamRegCode[reg];
 
-    if (rreg.readCode==0xff)
-        THROW_HW_ERROR(InvalidValue) <<  "Priam register " << reg << " (" 
-				     << rreg.name << ") is not readable";
+	if (rreg.readCode == 0xff)
+		THROW_HW_ERROR(InvalidValue) << "Priam register " << reg << " ("
+				<< rreg.name << ") is not readable";
 
-    DEB_TRACE() << "read" << DEB_VAR2(rreg.name, size);
+	DEB_TRACE() << "read" << DEB_VAR2(rreg.name, size);
 
-    // Lock here the serial write/read acess to the priam to avoid deadlock due to concurrent access
-    AutoMutex lock(m_mutex);
+	// Lock here the serial write/read acess to the priam to avoid deadlock due to concurrent access
+	AutoMutex lock(m_mutex);
 
-    _writeCommand(rreg.readCode, buffer);
+	_writeCommand(rreg.readCode, buffer);
 
-    if (rreg.readSize==-1) {
-	rsize= size;
-    } else {
-	rsize= rreg.readSize;
-    }
+	if (rreg.readSize == -1) {
+		rsize = size;
+	} else {
+		rsize = rreg.readSize;
+	}
 
-    _readAnswer(rreg.readCode, rsize, buffer);
+	_readAnswer(rreg.readCode, rsize, buffer);
 
-    if (buffer.size() != (unsigned long)rsize)
-	THROW_HW_ERROR(Error) << "Priam return " << DEB_VAR1(buffer.size())
-			      << "is not correct; should be " 
-			      << DEB_VAR1(rsize);
+	if (buffer.size() != (unsigned long) rsize)
+		THROW_HW_ERROR(Error) << "Priam return " << DEB_VAR1(buffer.size())
+				<< "is not correct; should be " << DEB_VAR1(rsize);
 }
 
-void PriamSerial::_writeCommand(short code,const string &inbuf) const
-{
-    DEB_MEMBER_FUNCT();
-    string wbuf;
+void PriamSerial::_writeCommand(short code, const string &inbuf) const {
+	DEB_MEMBER_FUNCT();
+	string wbuf;
 
-    wbuf.assign(1, (char)code);
+	wbuf.assign(1, (char) code);
 
-    if (inbuf.size() > 0) {
+	if (inbuf.size() > 0) {
+		m_espia_serial.write(wbuf, false);
+		m_espia_serial.write(inbuf, true);
+	} else {
+		m_espia_serial.write(wbuf, true);
+	}
+}
+
+void PriamSerial::_readAnswer(short code, long size, string &rbuf) const {
+	DEB_MEMBER_FUNCT();
+	double tout;
+	short iret;
+	string sret("");
+
+	m_espia_serial.read(sret, 1, 0.2);
+	if (sret.size() == 0) {
+		THROW_HW_ERROR(Error) << "No answer from priam";
+	}
+	iret = sret.at(0) & 0xff;
+	if (iret == SERIAL_ERR) {
+		m_espia_serial.flush();
+		THROW_HW_ERROR(Error) << "Priam serial error";
+	}
+	if (iret == SERIAL_BAD) {
+		m_espia_serial.flush();
+		THROW_HW_ERROR(Error) << "Priam command not authorized";
+	}
+	if (iret != code) {
+		m_espia_serial.flush();
+		THROW_HW_ERROR(Error) << "Priam code not replyed";
+	}
+
+	if (size > 0) {
+		DEB_TRACE() << "read answer" << DEB_VAR1(size);
+		tout = ((int) (size / 1024) + 1) * 1.0;
+		m_espia_serial.read(rbuf, size, tout);
+	}
+
+	m_espia_serial.read(sret, 1, 1.0);
+	iret = sret.at(0) & 0xff;
+	if (iret != SERIAL_END) {
+		m_espia_serial.flush();
+		THROW_HW_ERROR(Error) << "Priam end of transfer not received";
+	}
+}
+
+void PriamSerial::writeFsr(const string& fsr, string& bid) {
+	DEB_MEMBER_FUNCT();
+	PriamCodeType reg;
+
+	reg = PriamSerTxCode[PSER_FSR];
+	if (fsr.size() != (unsigned long) reg.writeSize)
+		THROW_HW_ERROR(InvalidValue) << "Wrong " << DEB_VAR1(fsr.size())
+			<< " for Priam transfer; should be " << DEB_VAR1(long(reg.writeSize));
+
+	// Lock here the serial write/read acess to the priam to avoid deadlock due to concurrent access
+	AutoMutex lock(m_mutex);
+
+	_writeCommand(reg.writeCode, fsr);
+	_readAnswer(reg.writeCode, reg.readSize, bid);
+}
+
+void PriamSerial::writeMatrix(const string& input) {
+	DEB_MEMBER_FUNCT();
+
+	PriamCodeType reg;
+	string rbuf("");
+
+	reg = PriamSerTxCode[PSER_MATRIX];
+	if (input.size() != (unsigned long) reg.writeSize)
+		THROW_HW_ERROR(InvalidValue) << "Wrong " << DEB_VAR1(input.size())
+			<< " for Priam transfer; should be " << DEB_VAR1(long(reg.writeSize));
+
+	DEB_TRACE() << "Writing matrix";
+	_writeCommand(reg.writeCode, input);
+	DEB_TRACE() << "Handshake Writing matrix";
+	_readAnswer(reg.writeCode, 0, rbuf);
+}
+
+void PriamSerial::readMatrix(string& output) const {
+	DEB_MEMBER_FUNCT();
+
+	PriamCodeType reg;
+	string wbuf("");
+
+	// Lock here the serial write/read acess to the priam to avoid deadlock due to concurrent access
+	AutoMutex lock(m_mutex);
+
+	reg = PriamSerTxCode[PSER_MATRIX];
+	DEB_TRACE() << "Asking matrix";
+	_writeCommand(reg.readCode, wbuf);
+	DEB_TRACE() << "Reading matrix";
+	_readAnswer(reg.readCode, reg.readSize, output);
+}
+
+void PriamSerial::writeLut(PriamLut lut, const string& buffer) {
+	DEB_MEMBER_FUNCT();
+
+	PriamCodeType reg;
+	string wbuf("");
+	unsigned int size;
+
+	reg = PriamLutCode[lut];
+	size = buffer.size();
+	if (size > 256)
+		THROW_HW_ERROR(InvalidValue) << "Wrong lookup string " << DEB_VAR1(size) << ", should be <= 256";
+
+	wbuf.append(1, (char) reg.writeCode);
+	wbuf.append(1, (char) size);
+
+	// Lock here the serial write/read acess to the priam to avoid deadlock due to concurrent access
+	AutoMutex lock(m_mutex);
+
+	m_espia_serial.write(wbuf, true);
+	m_espia_serial.write(buffer, false);
+	_readAnswer(reg.writeCode, 0, wbuf);
+}
+
+void PriamSerial::readLut(PriamLut lut, string& buffer, long size) const {
+	DEB_MEMBER_FUNCT();
+
+	PriamCodeType reg;
+	string wbuf("");
+
+	if (size > 256)
+		THROW_HW_ERROR(InvalidValue) << "Wrong lookup string " << DEB_VAR1(size) << ";should be <= 256";
+	wbuf.append(1, (char) reg.readCode);
+	wbuf.append(1, (char) (size & 0xff));
+
+	// Lock here the serial write/read acess to the priam to avoid deadlock due to concurrent access
+	AutoMutex lock(m_mutex);
+
 	m_espia_serial.write(wbuf, false);
-	m_espia_serial.write(inbuf, true);
-    }
-    else {
-        m_espia_serial.write(wbuf, true);
-    }
-}
-
-void PriamSerial::_readAnswer(short code, long size, string &rbuf) const
-{
-    DEB_MEMBER_FUNCT();
-    double tout;
-    short  iret;
-    string sret("");
-
-    m_espia_serial.read(sret, 1, 0.2);
-    if (sret.size()==0) {
-        THROW_HW_ERROR(Error) << "No answer from priam";
-    }
-    iret= sret.at(0)&0xff;
-    if (iret==SERIAL_ERR) {
-	m_espia_serial.flush();
-	THROW_HW_ERROR(Error) << "Priam serial error";
-    }
-    if (iret==SERIAL_BAD) {
-	m_espia_serial.flush();
-	THROW_HW_ERROR(Error) << "Priam command not authorized";
-    }
-    if (iret!=code) {
-	m_espia_serial.flush();
-	THROW_HW_ERROR(Error) << "Priam code not replyed";
-    }
-
-    if (size>0) {
-        DEB_TRACE() << "read answer" << DEB_VAR1(size);
-	tout= ((int)(size/1024) + 1) * 1.0;
-	m_espia_serial.read(rbuf, size, tout);
-    }
-
-    m_espia_serial.read(sret, 1, 1.0);
-    iret= sret.at(0)&0xff;
-    if (iret != SERIAL_END) {
-	m_espia_serial.flush();
-	THROW_HW_ERROR(Error) << "Priam end of transfer not received";
-    }
-}
-
-void PriamSerial::writeFsr(const string& fsr,string& bid)
-{
-    DEB_MEMBER_FUNCT();
-    PriamCodeType reg;
-
-    reg= PriamSerTxCode[PSER_FSR];
-    if (fsr.size() != (unsigned long)reg.writeSize)
-	THROW_HW_ERROR(InvalidValue) << "Wrong " << DEB_VAR1(fsr.size())
-				     << " for Priam transfer; should be "
-				     << DEB_VAR1(long(reg.writeSize));
-
-    // Lock here the serial write/read acess to the priam to avoid deadlock due to concurrent access
-    AutoMutex lock(m_mutex);
-
-    _writeCommand(reg.writeCode, fsr);
-    _readAnswer(reg.writeCode, reg.readSize, bid);
-}
-
-void PriamSerial::writeMatrix(const string& input)
-{
-    DEB_MEMBER_FUNCT();
-
-    PriamCodeType reg;
-    string rbuf("");
-
-    reg= PriamSerTxCode[PSER_MATRIX];
-    if (input.size() != (unsigned long)reg.writeSize)
-	THROW_HW_ERROR(InvalidValue) << "Wrong " << DEB_VAR1(input.size())
-				     << " for Priam transfer; should be "
-				     << DEB_VAR1(long(reg.writeSize));
-
-    DEB_TRACE() << "Writing matrix";
-    _writeCommand(reg.writeCode, input);
-    DEB_TRACE() << "Handshake Writing matrix";
-    _readAnswer(reg.writeCode, 0, rbuf);
-}
-
-void PriamSerial::readMatrix(string& output) const
-{
-    DEB_MEMBER_FUNCT();
-
-    PriamCodeType reg;
-    string wbuf("");
-
-    // Lock here the serial write/read acess to the priam to avoid deadlock due to concurrent access
-    AutoMutex lock(m_mutex);
-
-    reg= PriamSerTxCode[PSER_MATRIX];
-    DEB_TRACE() << "Asking matrix";
-    _writeCommand(reg.readCode, wbuf);
-    DEB_TRACE() << "Reading matrix";
-    _readAnswer(reg.readCode, reg.readSize, output);
-}
-
-void PriamSerial::writeLut(PriamLut lut,const string& buffer)
-{
-    DEB_MEMBER_FUNCT();
-
-    PriamCodeType reg;
-    string wbuf("");
-    unsigned int size;
-
-    reg= PriamLutCode[lut];
-    size= buffer.size();
-    if (size > 256)
-	THROW_HW_ERROR(InvalidValue) << "Wrong lookup string " 
-				     << DEB_VAR1(size) << ", should be <= 256";
-
-    wbuf.append(1, (char)reg.writeCode);
-    wbuf.append(1, (char)size);
-
-    // Lock here the serial write/read acess to the priam to avoid deadlock due to concurrent access
-    AutoMutex lock(m_mutex);
-
-    m_espia_serial.write(wbuf, true);
-    m_espia_serial.write(buffer, false);
-    _readAnswer(reg.writeCode, 0, wbuf);
-}
-
-void PriamSerial::readLut(PriamLut lut, string& buffer, long size) const
-{
-    DEB_MEMBER_FUNCT();
-
-    PriamCodeType reg;
-    string wbuf("");
-
-    if (size > 256)
-	THROW_HW_ERROR(InvalidValue) << "Wrong lookup string " 
-				     << DEB_VAR1(size) << ";should be <= 256";
-    wbuf.append(1, (char)reg.readCode);
-    wbuf.append(1, (char)(size&0xff));
-
-    // Lock here the serial write/read acess to the priam to avoid deadlock due to concurrent access
-    AutoMutex lock(m_mutex);
-
-    m_espia_serial.write(wbuf, false);
-    _readAnswer(reg.readCode, size, buffer);
+	_readAnswer(reg.readCode, size, buffer);
 }
 

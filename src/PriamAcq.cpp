@@ -27,8 +27,8 @@ using namespace lima;
 using namespace lima::Maxipix;
 
 PriamAcq::PriamAcq(PriamSerial& priam_serial)
-	:m_priam_serial(priam_serial),
-	 m_setup(0), m_version(MaxipixDet::DUMMY), 
+	: m_priam_serial(priam_serial),
+	 m_setup(0), m_version(Maxipix::DUMMY),
 	 m_chip_fsr0(""), m_fo_fast(false),
 	 m_min_it(0), m_expo_time(-1.), m_int_time(-1.),
  	 m_shut_level(HIGH_RISE), m_shut_mode(FRAME),
@@ -69,9 +69,7 @@ void PriamAcq::getBoardVersion(short& pcb, short& firmware) const
     DEB_RETURN() << DEB_VAR2(pcb, firmware);
 }
 
-void PriamAcq::setup(MaxipixDet::Version version,
-		     MaxipixDet::Polarity polarity, 
-		     float osc,const string &fsr0)
+void PriamAcq::setup(Version version, Polarity polarity, float osc,const string &fsr0)
 {
     DEB_MEMBER_FUNCT();
     DEB_PARAM() << DEB_VAR4(version, polarity, osc, fsr0);
@@ -82,8 +80,8 @@ void PriamAcq::setup(MaxipixDet::Version version,
     setOscillator(osc);
 }
 
-void PriamAcq::setChipType(MaxipixDet::Version version,
-			   MaxipixDet::Polarity polarity)
+void PriamAcq::setChipType(Version version,
+		Polarity polarity)
 {
     DEB_MEMBER_FUNCT();
     DEB_PARAM() << DEB_VAR2(version, polarity);
@@ -92,15 +90,22 @@ void PriamAcq::setChipType(MaxipixDet::Version version,
     char val;
 
     switch (version) {
-	case MaxipixDet::MPX2: val= 0x40; break;
-  	case MaxipixDet::MXR2: val= 0x00; break;
-	case MaxipixDet::TPX1: val= 0x60; break;
-	default: val= 0x00;
-    }
-    m_version= version;
-    if (polarity==MaxipixDet::POSITIVE) {
-	val= 0x80 | val;
-    }
+	case Maxipix::MPX2:
+		val = 0x40;
+		break;
+	case Maxipix::MXR2:
+		val = 0x00;
+		break;
+	case Maxipix::TPX1:
+		val = 0x60;
+		break;
+	default:
+		val = 0x00;
+	}
+	m_version = version;
+	if (polarity == Maxipix::POSITIVE) {
+		val = 0x80 | val;
+	}
 
     sval.assign(1, val);
     m_priam_serial.writeRegister(PriamSerial::PR_MCR1, sval);
@@ -179,7 +184,7 @@ void PriamAcq::setOscillator(float frequency)
     _timeAdjust();
 
     // -- for TPX, set counting frequency divider
-    if (m_version == MaxipixDet::TPX1) {
+    if (m_version == Maxipix::TPX1) {
 	sval= string(1, (char)0x01);
 	m_priam_serial.writeRegister(PriamSerial::PR_TIP, sval);
     }
@@ -220,7 +225,7 @@ void PriamAcq::_timeAdjust()
     tas= tap - 2;
     if (tas < 0) tas= 0;
 
-    if (m_version == MaxipixDet::TPX1) {
+    if (m_version == Maxipix::TPX1) {
     	if (m_osc_frequency < 50.0)
 		tap -=2;
 	if ((m_osc_frequency >=50.0) && (m_osc_frequency < 120.0))
@@ -691,7 +696,7 @@ void PriamAcq::setSerialReadout(short port)
     _writeRomReg();
 }
 
-void PriamAcq::setParalellReadout(vector<int> ports)
+void PriamAcq::setParallelReadout(vector<int> ports)
 {
     DEB_MEMBER_FUNCT();
     DEB_PARAM() << DEB_VAR1(ports.size());
