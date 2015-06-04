@@ -173,7 +173,6 @@ class Interface : HwInterface
 	virtual int getNbHwAcquiredFrames();
 	void updateValidRanges();	
 	void setConfigFlag(bool flag);
-	void setAcqMode(AcqMode acqMode);
  	void setReconstructionTask(LinkTask*);
 };
 

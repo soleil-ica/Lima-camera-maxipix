@@ -13,8 +13,8 @@ int main()
 {
 DEB_GLOBAL_FUNCT();
 
-  string p= "ffdfd";
-  string u = "ffdfd";
+  string p= "/users/blissadm/local/maxipix/tpxatl25";
+  string u = "tpxatl25";
   Camera* cam;
   cam = new Camera(0,p,u, true);
   return(1);

@@ -37,7 +37,7 @@ INCLUDES = -I../include \
 	       -I../../../third-party/Processlib/core/include \
 	       -I../../../third-party/libconfig/lib
 
-CXXFLAGS += $(INCLUDES) -fPIC -Wall -pthread 
+CXXFLAGS += $(INCLUDES) -fPIC -Wall -pthread -g
 #CXXFLAGS += -std=c++0x
 
 all: tools Maxipix.o 

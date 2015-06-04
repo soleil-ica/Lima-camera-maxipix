@@ -36,7 +36,6 @@ Camera::Camera(int espia_dev_nb, const std::string config_path, const std::strin
 		m_ebuf(Espia::BufferMgr(m_espiaAcq)),
 		m_priamSerial(PriamSerial(m_eser)),
 		m_priamAcq(PriamAcq(m_priamSerial)),
-		m_cfgPath(config_path),
 		m_cfgName(config_name),
 		m_xchip(0),
 		m_ychip(0),
@@ -47,7 +46,8 @@ Camera::Camera(int espia_dev_nb, const std::string config_path, const std::strin
 		m_mis_cb_act(false),
 		m_no_reconstruction(reconstruction),
 		m_layout(MaxipixReconstruction::L_NONE),
-		m_acq_end_cb(*this) {
+		m_acq_end_cb(*this),
+		m_cfgPath(config_path){
 
 	DEB_CONSTRUCTOR();
 	m_reconstruct = NULL;
@@ -304,11 +304,12 @@ void Camera::init() {
 	m_espiaAcq.registerAcqEndCallback(m_acq_end_cb);
     setNbChip(1, 1);
 	if (!m_cfgPath.empty() && !m_cfgName.empty()) {
-	  //setPath(m_cfgPath);
 		loadConfig(m_cfgName, m_no_reconstruction);
 	}
 }
-
+void Camera::setPath(const std::string& path) {
+  m_cfgPath = path;
+}
 void Camera::setVersion(Version version) {
 	DEB_MEMBER_FUNCT();
 	m_version = version;

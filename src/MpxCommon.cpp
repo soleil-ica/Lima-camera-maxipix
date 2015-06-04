@@ -163,7 +163,39 @@ void convert_from_string(const std::string& val, MaxipixReconstruction::Type& fi
 	}
 }
 
-const string convert_2_string(MpxPixelConfig::TimePixMode& mode) {
+const string convert_2_string(const MaxipixReconstruction::Layout& layout) {
+	string name;
+	switch (layout) {
+	case MaxipixReconstruction::L_NONE: name = "L_NONE"; break;
+	case MaxipixReconstruction::L_2x2: name = "L_2x2"; break;
+	case MaxipixReconstruction::L_5x1: name = "L_5x1"; break;
+	case MaxipixReconstruction::L_FREE: name = "L_FREE"; break;
+	case MaxipixReconstruction::L_GENERAL: name = "L_GENERAL"; break;
+	default: name = "Unknown"; break;
+	}
+	return name;
+}
+
+void convert_from_string(const std::string& val, MaxipixReconstruction::Layout& layout) {
+	std::string buffer = val;
+	std::transform(buffer.begin(), buffer.end(), buffer.begin(), ::toupper);
+	if (buffer == "L_NONE") {
+		layout = MaxipixReconstruction::L_NONE;
+	} else if (buffer == "L_2x2") {
+		layout = MaxipixReconstruction::L_2x2;
+	} else if (buffer == "L_5x1") {
+		layout = MaxipixReconstruction::L_5x1;
+	} else if (buffer == "L_FREE") {
+		layout = MaxipixReconstruction::L_FREE;
+	} else if (buffer == "L_GENERAL") {
+		layout = MaxipixReconstruction::L_GENERAL;
+	} else {
+		std::stringstream msg;
+		msg << "MaxipixReconstruction::Layout can't be:" << DEB_VAR1(val);
+		throw LIMA_EXC(lima::CameraPlugin, InvalidValue, msg.str());
+	}
+}
+const string convert_2_string(const MpxPixelConfig::TimePixMode& mode) {
 	string name;
 	switch (mode) {
 	case MpxPixelConfig::MEDIPIX: name = "medipix"; break;

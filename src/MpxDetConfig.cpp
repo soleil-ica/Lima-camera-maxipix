@@ -150,6 +150,8 @@ void MpxDetConfig::parseDetModuleSection(INIReader& reader) {
 	convert_from_string(type, version); // Checks for validity
 	m_mpxCfg["version"] = static_cast<int>(version);
 
+	DEB_TRACE() << DEB_VAR1(m_mpxCfg["version"]);
+	
 	std::string polarity = reader.Get(section, "polarity", "Unknown");
 	Polarity polarityType;
 	convert_from_string(polarity, polarityType); // Checks for validity
@@ -179,7 +181,7 @@ void MpxDetConfig::parseDetModuleSection(INIReader& reader) {
 				THROW_HW_ERROR(Error) << "In <detmodule> section " << port << " is already assigned";
 			}
 		}
-		m_priamPorts[idx] = port;
+		m_priamPorts.push_back(port);
 	}
 }
 
