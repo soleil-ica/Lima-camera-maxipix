@@ -57,11 +57,11 @@ std::vector<std::string>  MpxFsrDef::listKeys(bool saved) {
 	std::vector<std::string> keys;
 	if (saved) {
 		for (std::map<std::string,std::vector<std::pair<int,int> > >::iterator it=m_fsrKeys.begin(); it!=m_fsrKeys.end(); ++it) {
-			if (it->first != "daccode" || it->first != "sensedac" || it->first != "dacsel"){
-			    keys.push_back(it->first);
+			if (it->first != "daccode" && it->first != "sensedac" && it->first != "dacsel"){
+			  keys.push_back(it->first);
 			}
-		}
-	} else {
+		} 
+	}else {
 		for (std::map<std::string,std::vector<std::pair<int,int> > >::iterator it=m_fsrKeys.begin(); it!=m_fsrKeys.end(); ++it) {
 			keys.push_back(it->first);
 		}
@@ -543,21 +543,22 @@ void MpxFsrDef::initTPX1() {
 #endif
 
 MpxChipDacs::MpxChipDacs(Version version) :
-	m_version(version) {
+		m_version(version) {
 	reset();
 }
 
-MpxChipDacs::~MpxChipDacs() {}
+MpxChipDacs::~MpxChipDacs() {
+}
 
 void MpxChipDacs::reset() {
 	DEB_MEMBER_FUNCT();
 	std::map<std::string, int> vec = m_data;
-	for (std::map<std::string, int>::iterator it=vec.begin(); it!=vec.end(); ++it) {
-	    m_data[it->first]= 0;
+	for (std::map<std::string, int>::iterator it = vec.begin(); it != vec.end(); ++it) {
+		m_data[it->first] = 0;
 	}
 	// update
 	vec = MpxFsrDef::getInstance(m_version)->getDefault();
-	for (std::map<std::string, int>::iterator it=vec.begin(); it!=vec.end(); ++it) {
+	for (std::map<std::string, int>::iterator it = vec.begin(); it != vec.end(); ++it) {
 		m_data[it->first] = it->second;
 	}
 }
@@ -567,10 +568,10 @@ int MpxChipDacs::getOneDac(std::string& name) {
 	std::string lower = name;
 	std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
 	std::map<std::string, int> vec = m_data;
-	for (std::map<std::string, int>::iterator it=m_data.begin(); it!=m_data.end(); ++it) {
-	    if (it->first == lower) {
-	    	return it->second;
-	    }
+	for (std::map<std::string, int>::iterator it = m_data.begin(); it != m_data.end(); ++it) {
+		if (it->first == lower) {
+			return it->second;
+		}
 	}
 	return -1;
 }
@@ -587,29 +588,29 @@ void MpxChipDacs::getDacs(std::map<std::string, int>& dacs) {
 
 void MpxChipDacs::setDacs(std::map<std::string, int>& dacs) {
 	DEB_MEMBER_FUNCT();
-	for (std::map<std::string, int>::iterator it=dacs.begin(); it!=dacs.end(); ++it) {
+	for (std::map<std::string, int>::iterator it = dacs.begin(); it != dacs.end(); ++it) {
 		std::string name = it->first;
 		int value = it->second;
-	    setValue(name, value);
+		setValue(name, value);
 	}
 }
 
 std::vector<std::string> MpxChipDacs::getListKeys() {
 	DEB_MEMBER_FUNCT();
-    return MpxFsrDef::getInstance(m_version)->listKeys(0);
+	return MpxFsrDef::getInstance(m_version)->listKeys(false);
 }
 
 void MpxChipDacs::setValue(std::string& name, int value) {
 	DEB_MEMBER_FUNCT();
 	std::string lower = name;
 	std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
-	std::vector<std::string> v = MpxFsrDef::getInstance(m_version)->listKeys(0);
-	for (std::vector<std::string>::iterator it=v.begin(); it!=v.end(); ++it) {
+	std::vector<std::string> v = MpxFsrDef::getInstance(m_version)->listKeys(false);
+	for (std::vector<std::string>::iterator it = v.begin(); it != v.end(); ++it) {
 		if (*it == lower) {
 			if (lower == "daccode") {
-			    m_data[lower] = dacCode(value);
+				m_data[lower] = dacCode(value);
 			} else {
-			    m_data[lower] = value;
+				m_data[lower] = value;
 			}
 			return;
 		}
@@ -619,11 +620,11 @@ void MpxChipDacs::setValue(std::string& name, int value) {
 
 int MpxChipDacs::dacCode(std::string& code) {
 	DEB_MEMBER_FUNCT();
-	std::map<std::string,int> dacs = MpxFsrDef::getInstance(m_version)->dacCode();
+	std::map<std::string, int> dacs = MpxFsrDef::getInstance(m_version)->dacCode();
 	std::string name = code;
 	std::transform(name.begin(), name.end(), name.begin(), ::tolower);
-	for (std::map<std::string,int>::iterator it=dacs.begin(); it!=dacs.end(); ++it) {
-		if(name == it->first) {
+	for (std::map<std::string, int>::iterator it = dacs.begin(); it != dacs.end(); ++it) {
+		if (name == it->first) {
 			return dacs[name];
 		}
 	}
@@ -632,56 +633,59 @@ int MpxChipDacs::dacCode(std::string& code) {
 
 int MpxChipDacs::dacCode(int code) {
 	DEB_MEMBER_FUNCT();
-	std::map<std::string,int> dacs = MpxFsrDef::getInstance(m_version)->dacCode();
-	for (std::map<std::string,int>::iterator it=dacs.begin(); it!=dacs.end(); ++it) {
-		if(code == it->second) {
+	std::map<std::string, int> dacs = MpxFsrDef::getInstance(m_version)->dacCode();
+	for (std::map<std::string, int>::iterator it = dacs.begin(); it != dacs.end(); ++it) {
+		if (code == it->second) {
 			return code;
 		}
 	}
 	THROW_HW_ERROR(Error) << "<" << code << "> is not a valid dac code";
 }
 
-// Laurent to check!!!!!!!!!!!!!!!!
-//
 void MpxChipDacs::getFsrString(std::string& fsrString) {
 	DEB_MEMBER_FUNCT();
 	std::vector<std::string> fsrkeys = MpxFsrDef::getInstance(m_version)->listKeys();
-	int fsrInt[32] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+	int fsrInt[32] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 	for (std::map<std::string, int>::iterator it = m_data.begin(); it != m_data.end(); ++it) {
 		int base = 0;
 		std::string key = it->first;
 		int val = it->second;
 		std::vector<std::pair<int, int> > fsrValues = MpxFsrDef::getInstance(m_version)->fsrValues(key);
-		for (std::vector<std::pair<int,int> >::iterator it = fsrValues.begin(); it != fsrValues.end(); ++it) {
+		for (std::vector<std::pair<int, int> >::iterator it = fsrValues.begin(); it != fsrValues.end(); ++it) {
 			std::pair<int, int> p = *it;
 			int lsb = p.first;
 			int msb = p.second;
 			for (int idx = 0; idx < msb - lsb + 1; idx++) {
 				if (val & (1 << (base + idx))) {
-					fsrInt[31-(lsb+idx)/8] |= 1 << ((lsb+idx)%8);
+					int index = 31 - (lsb + idx) / 8;
+					int shift = ((lsb + idx) % 8);
+					fsrInt[index] |= 1 << shift;
 				}
 			}
 			base += msb - lsb + 1;
 		}
 	}
 	std::stringstream ss;
-	for (int idx=0; idx<32; idx++) {
-		ss << fsrInt[idx];
+	for (int idx = 0; idx < 32; idx++) {
+		char c = fsrInt[idx];
+		ss << c;
 	}
-    fsrString = ss.str();
+	fsrString = ss.str();
+	DEB_TRACE() << ss.str();
 }
 
 MpxDacs::MpxDacs(Version version, int nchip) :
-	m_version(version),
-	m_nchip(nchip){
+		m_version(version), m_nchip(nchip) {
 	m_priamPorts = NULL;
-	m_thlNoise = std::map<int,int>();
-	m_thlXray = std::map<int,int>();
+	m_thlNoise = std::map<int, int>();
+	m_thlXray = std::map<int, int>();
 	m_chipDacs = std::vector<MpxChipDacs>();
 	reset();
 }
 
-MpxDacs::~MpxDacs() {}
+MpxDacs::~MpxDacs() {
+}
 
 void MpxDacs::reset() {
 	DEB_MEMBER_FUNCT();
@@ -691,84 +695,83 @@ void MpxDacs::reset() {
 	m_energyCalib = 0;
 	m_lastEnergy = 0;
 
-    for (int idx=0; idx<m_nchip; idx++) {
-	    m_chipDacs.push_back(MpxChipDacs(m_version));
-	    m_thlNoise[idx] = 0;
-        m_thlXray[idx] = 0;
-    }
+	for (int idx = 0; idx < m_nchip; idx++) {
+		m_chipDacs.push_back(MpxChipDacs(m_version));
+		m_thlNoise[idx] = 0;
+		m_thlXray[idx] = 0;
+	}
 }
 
 void MpxDacs::setPriamPars(PriamAcq* priamAcq, std::vector<int>* priamPorts) {
 	DEB_MEMBER_FUNCT();
-    m_pacq = priamAcq;
-    m_priamPorts = priamPorts;
+	m_pacq = priamAcq;
+	m_priamPorts = priamPorts;
 }
 
 void MpxDacs::applyChipDacs(int chipid) {
 	DEB_MEMBER_FUNCT();
-    if (m_pacq != NULL || m_priamPorts != NULL)
-        THROW_HW_ERROR(Error) << "Call first setPriamPars() first !";
+	if (m_pacq == NULL || m_priamPorts == NULL)
+		THROW_HW_ERROR(Error) << "Call first setPriamPars() first !";
 
-    std::string sfsr;
-    if (chipid == 0) {
-    	for (int idx=0; idx<m_nchip; idx++) {
-    		getFsrString(idx+1, sfsr);
-    		DEB_TRACE() << "Loading Chip FSR #" << chipid << " ...";
-    		m_pacq->setChipFsr((*m_priamPorts)[idx], sfsr);
-    	}
-    } else {
-    	int port = (*m_priamPorts)[chipid-1];
-    	getFsrString(chipid, sfsr);
-    	DEB_TRACE() << "Loading Chip FSR #" << chipid << " ...";
-    	m_pacq->setChipFsr(port, sfsr);
-    	// need to wait for FSR transfer at least for the last
-    	// chip otherwise an immediate exposure could make image
-    	// in bad shape
-    	sleep(100);
-    }
+	std::string sfsr;
+	if (chipid == 0) {
+		for (int idx = 0; idx < m_nchip; idx++) {
+			getFsrString(idx + 1, sfsr);
+			DEB_TRACE() << "Loading Chip FSR #" << chipid << " ...";
+			m_pacq->setChipFsr((*m_priamPorts)[idx], sfsr);
+		}
+	} else {
+		int port = (*m_priamPorts)[chipid - 1];
+		getFsrString(chipid, sfsr);
+		DEB_TRACE() << "Loading Chip FSR #" << chipid << " ...";
+		m_pacq->setChipFsr(port, sfsr);
+		// need to wait for FSR transfer at least for the last
+		// chip otherwise an immediate exposure could make image
+		// in bad shape
+		sleep(100);
+	}
 }
 
 void MpxDacs::getFsrString(int chipid, std::string& fsrString) {
 	DEB_MEMBER_FUNCT();
-	std::pair<int,int> p = getChipIdx(chipid);
+	std::pair<int, int> p = getChipIdx(chipid);
 	m_chipDacs[p.first].getFsrString(fsrString);
 }
 
-
-void MpxDacs::setThlNoise(std::map<int,int>& values) {
+void MpxDacs::setThlNoise(std::map<int, int>& values) {
 	DEB_MEMBER_FUNCT();
-        m_thlNoise = values;
+	m_thlNoise = values;
 }
 
-void MpxDacs::getThlNoise(std::map<int,int>& noise) {
+void MpxDacs::getThlNoise(std::map<int, int>& noise) {
 	DEB_MEMBER_FUNCT();
-    noise = m_thlNoise;
+	noise = m_thlNoise;
 }
 
-void MpxDacs::setThlXray(std::map<int,int>& values) {
+void MpxDacs::setThlXray(std::map<int, int>& values) {
 	DEB_MEMBER_FUNCT();
-        m_thlXray = values;
+	m_thlXray = values;
 }
 
-void MpxDacs::getThlXray(std::map<int,int>& threshold) {
+void MpxDacs::getThlXray(std::map<int, int>& threshold) {
 	DEB_MEMBER_FUNCT();
-    threshold = m_thlXray;
+	threshold = m_thlXray;
 }
 
 void MpxDacs::setEnergyCalibration(double energy) {
 	DEB_MEMBER_FUNCT();
-    m_energyCalib = energy;
+	m_energyCalib = energy;
 }
 
 void MpxDacs::getEnergyCalibration(double& energy) {
 	DEB_MEMBER_FUNCT();
-    energy = m_energyCalib;
+	energy = m_energyCalib;
 }
 
 void MpxDacs::setEnergy(double energy) {
 	DEB_MEMBER_FUNCT();
 	for (int idx = 0; idx < m_nchip; idx++) {
-	  double val =  m_thlNoise[idx] + ((m_thlXray[idx] - m_thlNoise[idx]) * energy / m_energyCalib);
+		double val = m_thlNoise[idx] + ((m_thlXray[idx] - m_thlNoise[idx]) * energy / m_energyCalib);
 		std::string name = "thl";
 		m_chipDacs[idx].setOneDac(name, int(val));
 		DEB_TRACE() << " thl #" << idx << " = " << val;
@@ -778,21 +781,21 @@ void MpxDacs::setEnergy(double energy) {
 
 void MpxDacs::getEnergy(double& energy) {
 	DEB_MEMBER_FUNCT();
-    energy = m_lastEnergy;
+	energy = m_lastEnergy;
 }
 
 void MpxDacs::setOneDac(int chipid, std::string name, int value) {
 	DEB_MEMBER_FUNCT();
-	std::pair<int,int> p = getChipIdx(chipid);
-	for (int idx=p.first; idx<p.second; idx++) {
-	    m_chipDacs[idx].setOneDac(name, value);
+	std::pair<int, int> p = getChipIdx(chipid);
+	for (int idx = p.first; idx < p.second; idx++) {
+		m_chipDacs[idx].setOneDac(name, value);
 	}
 }
 
 void MpxDacs::setDacs(int chipid, std::map<std::string, int>& dacs) {
 	DEB_MEMBER_FUNCT();
-	std::pair<int,int> p = getChipIdx(chipid);
-	for (int idx=p.first; idx<p.second; idx++) {
+	std::pair<int, int> p = getChipIdx(chipid);
+	for (int idx = p.first; idx < p.second; idx++) {
 		m_chipDacs[idx].setDacs(dacs);
 	}
 }
@@ -800,17 +803,17 @@ void MpxDacs::setDacs(int chipid, std::map<std::string, int>& dacs) {
 void MpxDacs::getOneDac(int chipid, std::string name, int& value) {
 	DEB_MEMBER_FUNCT();
 	std::vector<int> dacs;
-	std::pair<int,int> p = getChipIdx(chipid);
-	for (int idx=p.first; idx<p.second; idx++) {
-	    dacs.push_back(m_chipDacs[idx].getOneDac(name));
+	std::pair<int, int> p = getChipIdx(chipid);
+	for (int idx = p.first; idx < p.second; idx++) {
+		dacs.push_back(m_chipDacs[idx].getOneDac(name));
 	}
 	int res = dacs[0];
 	value = -1;
 	if (chipid == 0 && m_nchip > 1) {
-	    for (int idx=1; idx<m_nchip; idx++) {
-	    	if (dacs[idx] != res) {
-	    		return;
-	    	}
+		for (int idx = 1; idx < m_nchip; idx++) {
+			if (dacs[idx] != res) {
+				return;
+			}
 		}
 	}
 	value = dacs[0];
@@ -818,36 +821,35 @@ void MpxDacs::getOneDac(int chipid, std::string name, int& value) {
 
 // Laurent to check this carefully!!!!!!!!!!
 //
-void MpxDacs::getDacs(int chipid, std::map<std::string,int>& res) {
+void MpxDacs::getDacs(int chipid, std::map<std::string, int>& res) {
 	DEB_MEMBER_FUNCT();
-	std::pair<int,int> p = getChipIdx(chipid);
-	std::vector<std::map<std::string,int> > dacs;
-	for (int idx=p.first; idx<p.second; idx++) {
-		std::map<std::string,int> chipDac;
+	std::pair<int, int> p = getChipIdx(chipid);
+	std::vector<std::map<std::string, int> > dacs;
+	for (int idx = p.first; idx < p.second; idx++) {
+		std::map<std::string, int> chipDac;
 		m_chipDacs[idx].getDacs(chipDac);
-	    dacs.push_back(chipDac);
+		dacs.push_back(chipDac);
 	}
 	res = dacs[0];
 	if (chipid == 0 && m_nchip > 1) {
-		for (std::map<std::string,int>::iterator it=dacs[0].begin(); it!=dacs[0].end(); ++it) {
+		for (std::map<std::string, int>::iterator it = dacs[0].begin(); it != dacs[0].end(); ++it) {
 			std::string key = it->first;
 			int val = it->second;
-	    	for (int idx=1; idx<m_nchip; idx++) {
-	    		if (dacs[idx][key] != val) {
-	    			res.erase(key);
-	    		}
-		    }
+			for (int idx = 1; idx < m_nchip; idx++) {
+				if (dacs[idx][key] != val) {
+					res.erase(key);
+				}
+			}
 		}
 	}
 }
 
-std::pair<int,int> MpxDacs::getChipIdx(int chipid) {
+std::pair<int, int> MpxDacs::getChipIdx(int chipid) {
 	DEB_MEMBER_FUNCT();
 	if (chipid == 0) {
-	    return std::pair<int,int>(0, m_nchip);
+		return std::pair<int, int>(0, m_nchip);
 	} else if (chipid < 1 || chipid > m_nchip) {
 		THROW_HW_ERROR(Error) << "Invalid chipid <" << chipid << ">. Range is [1," << m_nchip << "]";
 	}
-	return std::pair<int,int>(chipid-1, chipid);
+	return std::pair<int, int>(chipid - 1, chipid);
 }
-

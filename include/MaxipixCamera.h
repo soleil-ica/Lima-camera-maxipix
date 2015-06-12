@@ -54,7 +54,7 @@ DEB_CLASS_NAMESPC(DebModCamera, "Camera", "Maxipix");
 public:
 
 
-	Camera(int espia_dev_nb, const std::string config_path, const std::string config_name, bool reconstruction = false);
+	Camera(int espia_dev_nb, const std::string& config_path, const std::string& config_name, bool reconstruction = false);
 	~Camera();
 
 	void reset(HwInterface::ResetLevel reset_level);
@@ -113,6 +113,9 @@ public:
 
 	MaxipixReconstruction* getReconstructionTask();
 
+	// Buffer control object
+	HwBufferCtrlObj* getBufferCtrlObj();
+
 protected:
 	virtual void setMaxImageSizeCallbackActive(bool cb_active);
 
@@ -138,8 +141,8 @@ private:
 	PriamSerial m_priamSerial;
 	PriamAcq m_priamAcq;
 	std::string m_cfgName;;
-	int m_xchip;
-	int m_ychip;
+	int m_xchips;
+	int m_ychips;
 	int m_xgap;
 	int m_ygap;
 	ImageType m_type;
@@ -153,7 +156,7 @@ private:
 	Size m_size;
 	std::string m_cfgFilename;
 	std::vector<int> m_priamPorts;
-	std::map<std::string, int> m_mpxCfg;
+//	std::map<std::string, int> m_mpxCfg;
 	bool m_prepare_flag;
 	AcqMode m_acqMode;
 
@@ -161,13 +164,14 @@ private:
 	MaxipixReconstruction::Type m_reconstructType;
 	MaxipixReconstruction* m_reconstruct;
 
+	// Buffer control object
+	SoftBufferCtrlObj m_bufferCtrlObj;
 //	BufferCtrlMgr m_mbuf;
 	MpxPixelConfig* m_chipCfg;
 	MpxDacs* m_mpxDacs;
 
 	void init();
-	void acqLoadConfig(const std::string& name,
-			bool reconstruction);
+	void acqLoadConfig(const std::string& name, bool reconstruction);
 	int getPriamPort(int chipid);
 };
 

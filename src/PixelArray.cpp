@@ -26,12 +26,17 @@
 #include "lima/SizeUtils.h"
 #include "MpxVersion.h"
 
+#if __GNUC_MINOR_ < 6
+#define nullptr 0
+#endif
+
 using namespace std;
 using namespace lima;
 using namespace lima::Maxipix;
 
-PixelConfigArray::PixelConfigArray(Version& version) :
-		 maskArray(NULL), testArray(NULL), lowArray(NULL), highArray(NULL), m_version(version) {
+PixelConfigArray::PixelConfigArray(Version version) :
+		 maskArray(nullptr), testArray(nullptr), lowArray(nullptr), 
+		 highArray(nullptr), m_version(version), m_bit() {
 	switch (m_version) {
 
 	case Maxipix::DUMMY:
@@ -96,9 +101,6 @@ PixelConfigArray::PixelConfigArray(Version& version) :
 	};
 }
 
-PixelConfigArray::~PixelConfigArray() {
-}
-
 void PixelConfigArray::convert(string& buffer) {
 	char maskBit[4];
 	int size, base, baseMask, baseTest, baseLow[4], baseHigh[4];
@@ -147,14 +149,9 @@ void PixelConfigArray::convert(string& buffer) {
 	}
 }
 
-PixelDataArray::PixelDataArray(Maxipix::Version& version) :
-		m_version(version) {
-}
+PixelDataArray::PixelDataArray(){}
 
-PixelDataArray::~PixelDataArray() {
-}
-
-void PixelDataArray::convert(string buffer, unsigned short *data) {
+void PixelDataArray::convert(const string& buffer, unsigned short *data) {
 	int row, dbit, wcol, dcol, wbit;
 	int nrow = ChipSize.getHeight();
 	int ncol = ChipSize.getWidth();

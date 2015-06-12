@@ -159,11 +159,11 @@ class Interface : HwInterface
 
 %End
  public:
-	Interface(BufferCtrlMgr& buffer_mgr /KeepReference/, Maxipix::Camera& cam /KeepReference/);
+	Interface(Maxipix::Camera& cam /KeepReference/);
 	virtual ~Interface();
 
 //	virtual void getCapList(CapList&) const;
-    virtual void getCapList(std::vector<HwCap> &cap_list /Out/) const;
+	virtual void getCapList(std::vector<HwCap> &cap_list /Out/) const;
 
 	virtual void reset(HwInterface::ResetLevel reset_level);
 	virtual void prepareAcq();

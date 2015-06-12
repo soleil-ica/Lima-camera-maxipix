@@ -21,6 +21,8 @@
 //###########################################################################
 #include "MaxipixInterface.h"
 
+#define nullptr 0
+
 using namespace std;
 using namespace lima;
 using namespace lima::Maxipix;
@@ -91,7 +93,6 @@ void DetInfoCtrlObj::unregisterMaxImageSizeCallback(
 	DEB_MEMBER_FUNCT();
 	m_cam.unregisterMaxImageSizeCallback(cb);
 }
-
 
 //-----------------------------------------------------
 // @brief Buffer Control
@@ -195,16 +196,17 @@ bool SyncCtrlObj::_checkTrigMode(TrigMode trig_mode, bool with_acq_mode) {
 
 	AcqMode acqMode;
 	getAcqMode(acqMode);
-	return m_cam.checkTrigMode(trig_mode, (with_acq_mode && (acqMode == Accumulation)));
+	return m_cam.checkTrigMode(trig_mode,
+			(with_acq_mode && (acqMode == Accumulation)));
 
 }
 
 void SyncCtrlObj::setTrigMode(TrigMode trig_mode) {
-    DEB_MEMBER_FUNCT();
-    if (!_checkTrigMode(trig_mode,true)) {
-    	THROW_HW_ERROR(InvalidValue) << "Invalid in accumulation mode: " << DEB_VAR1(trig_mode);
-    }
-    m_cam.setTrigMode(trig_mode);
+	DEB_MEMBER_FUNCT();
+	if (!_checkTrigMode(trig_mode, true)) {
+		THROW_HW_ERROR(InvalidValue) << "Invalid in accumulation mode: " << DEB_VAR1(trig_mode);
+	}
+	m_cam.setTrigMode(trig_mode);
 }
 
 void SyncCtrlObj::getTrigMode(TrigMode& trig_mode) {
@@ -251,30 +253,27 @@ void SyncCtrlObj::getValidRanges(ValidRangesType& valid_ranges) {
  * \brief ShutterCtrlObj constructor
  *******************************************************************/
 
-ShutterCtrlObj::ShutterCtrlObj(Camera& cam)
-	: m_cam(cam)
-{
+ShutterCtrlObj::ShutterCtrlObj(Camera& cam) :
+		m_cam(cam) {
 	DEB_CONSTRUCTOR();
 }
 
-ShutterCtrlObj::~ShutterCtrlObj()
-{
+ShutterCtrlObj::~ShutterCtrlObj() {
 	DEB_DESTRUCTOR();
 }
 
-bool ShutterCtrlObj::checkMode(ShutterMode shut_mode) const
-{
+bool ShutterCtrlObj::checkMode(ShutterMode shut_mode) const {
 	DEB_MEMBER_FUNCT();
 	DEB_PARAM() << DEB_VAR1(shut_mode);
 
 	bool valid_mode;
-	switch (shut_mode) {	
+	switch (shut_mode) {
 	case ShutterAutoFrame:
 	case ShutterAutoSequence:
 		valid_mode = true;
 		break;
 	default:
-	// No Manual mode for Maxipix !
+		// No Manual mode for Maxipix !
 		valid_mode = false;
 	}
 
@@ -341,51 +340,44 @@ void ShutterCtrlObj::getCloseTime(double& shut_close_time) const {
 /*******************************************************************
  * \brief ReconstructionCtrlObj constructor
  *******************************************************************/
-ReconstructionCtrlObj::ReconstructionCtrlObj():
-  m_reconstruct_task(NULL)
-{
-        DEB_MEMBER_FUNCT();
+ReconstructionCtrlObj::ReconstructionCtrlObj() :
+		m_reconstruct_task(NULL) {
+	DEB_MEMBER_FUNCT();
 }
 
-ReconstructionCtrlObj::~ReconstructionCtrlObj()
-{
-        DEB_DESTRUCTOR();
+ReconstructionCtrlObj::~ReconstructionCtrlObj() {
+	DEB_DESTRUCTOR();
 	if (m_reconstruct_task)
-                m_reconstruct_task->unref();
+		m_reconstruct_task->unref();
 }
-void ReconstructionCtrlObj::setReconstructionTask(LinkTask* task)
-{
-       DEB_MEMBER_FUNCT();
-       DEB_PARAM() << DEB_VAR1(task);
+void ReconstructionCtrlObj::setReconstructionTask(LinkTask* task) {
+	DEB_MEMBER_FUNCT();
+	DEB_PARAM() << DEB_VAR1(task);
 
-       if (task) task->ref();
-       if(m_reconstruct_task)
-               m_reconstruct_task->unref();
-       m_reconstruct_task = task;
-       reconstructionChange(task);
+	if (task)
+		task->ref();
+	if (m_reconstruct_task)
+		m_reconstruct_task->unref();
+	m_reconstruct_task = task;
+	reconstructionChange(task);
 }
 
 /*******************************************************************
  * \brief Hw Interface constructor
  *******************************************************************/
 
-Interface::Interface(BufferCtrlMgr& buffer_mgr,
-                      Camera& cam)
-        :
-		m_cam(cam), m_buffer_mgr(buffer_mgr), /*m_acq_end_cb(cam),*/
-		m_det_info(cam), m_buffer(buffer_mgr), m_sync(cam), m_shutter(
-				cam), m_reconstruction(), m_prepare_flag(false) //, m_config_flag(false)
-	  
+Interface::Interface(Camera& cam) :
+  m_cam(cam), m_det_info(cam), m_bufferCtrlObj(nullptr), m_sync(cam), m_shutter(cam),
+		m_reconstruction(), m_config_flag(false)
 {
 	DEB_CONSTRUCTOR();
-
-//	m_cam.registerAcqEndCallback(m_acq_end_cb);
 
 	HwDetInfoCtrlObj *det_info = &m_det_info;
 	m_cap_list.push_back(HwCap(det_info));
 
-	HwBufferCtrlObj *buffer = &m_buffer;
-	m_cap_list.push_back(HwCap(buffer));
+	m_bufferCtrlObj = m_cam.getBufferCtrlObj();
+	HwBufferCtrlObj *buffer = m_cam.getBufferCtrlObj();
+	m_cap_list.push_back(buffer);
 
 	HwSyncCtrlObj *sync = &m_sync;
 	m_cap_list.push_back(HwCap(sync));
@@ -399,19 +391,16 @@ Interface::Interface(BufferCtrlMgr& buffer_mgr,
 	reset(SoftReset);
 }
 
-Interface::~Interface()
-{
-        DEB_DESTRUCTOR();
+Interface::~Interface() {
+	DEB_DESTRUCTOR();
 }
 
-void Interface::getCapList(HwInterface::CapList &cap_list) const
-{
-        DEB_MEMBER_FUNCT();
-        cap_list = m_cap_list;
+void Interface::getCapList(HwInterface::CapList &cap_list) const {
+	DEB_MEMBER_FUNCT();
+	cap_list = m_cap_list;
 }
 
-void Interface::reset(ResetLevel reset_level)
-{
+void Interface::reset(ResetLevel reset_level) {
 	DEB_MEMBER_FUNCT();
 	m_cam.reset(reset_level);
 }
@@ -419,48 +408,37 @@ void Interface::reset(ResetLevel reset_level)
 void Interface::prepareAcq() {
 	DEB_MEMBER_FUNCT();
 	m_cam.prepareAcq();
-	m_prepare_flag = true;
 }
 
 void Interface::startAcq() {
-    DEB_MEMBER_FUNCT();
-    AcqMode acqMode;
+	DEB_MEMBER_FUNCT();
+	AcqMode acqMode;
 	m_sync.getAcqMode(acqMode);
 	m_cam.setAcqMode(acqMode);
-
-   	if(m_prepare_flag || acqMode == Accumulation)
-   	{
-   		m_buffer_mgr.setStartTimestamp(Timestamp::now());
-  		m_prepare_flag = false;
-   	}
 	m_cam.startAcq();
 }
 
 void Interface::stopAcq() {
 	DEB_MEMBER_FUNCT();
 	m_cam.stopAcq();
-	m_prepare_flag = false;
 }
 
-int Interface::getNbHwAcquiredFrames()
-{
+int Interface::getNbHwAcquiredFrames() {
 	DEB_MEMBER_FUNCT();
 	return m_cam.getNbHwAcquiredFrames();
 }
 
-void Interface::updateValidRanges()
-{
-  // Call here the HwSyncObj validRangesChanged() method about the
-  // change on ranges, then the CtAcquisition callback will be activated
-  // in order to update the new ranges.
-   HwSyncCtrlObj::ValidRangesType validRanges;
+void Interface::updateValidRanges() {
+	// Call here the HwSyncObj validRangesChanged() method about the
+	// change on ranges, then the CtAcquisition callback will be activated
+	// in order to update the new ranges.
+	HwSyncCtrlObj::ValidRangesType validRanges;
 
-  m_sync.getValidRanges(validRanges);
-  m_sync.validRangesChanged(validRanges);
+	m_sync.getValidRanges(validRanges);
+	m_sync.validRangesChanged(validRanges);
 }
 
-void Interface::getStatus(StatusType& status)
-{
+void Interface::getStatus(StatusType& status) {
 	DEB_MEMBER_FUNCT();
 	static const DetStatus det_mask = (DetWaitForTrigger | DetExposure | DetReadout);
 	status.det_mask = det_mask;
@@ -475,35 +453,11 @@ void Interface::getStatus(StatusType& status)
 	DEB_RETURN() << DEB_VAR1(status);
 }
 
-void Interface::setConfigFlag(bool flag)
-{
+void Interface::setConfigFlag(bool flag) {
 	m_config_flag = flag;
 }
 
-
-void Interface::setReconstructionTask(LinkTask* task)
-{
-        DEB_MEMBER_FUNCT();
-        m_reconstruction.setReconstructionTask(task);
+void Interface::setReconstructionTask(LinkTask* task) {
+	DEB_MEMBER_FUNCT();
+	m_reconstruction.setReconstructionTask(task);
 }
-
-///*******************************************************************
-// * \brief AcqEndCallback constructor
-// *******************************************************************/
-//
-//Interface::AcqEndCallback::AcqEndCallback(Camera& cam)
-//	: m_cam(cam)
-//{
-//	DEB_CONSTRUCTOR();
-//}
-//
-//Interface::AcqEndCallback::~AcqEndCallback()
-//{
-//	DEB_DESTRUCTOR();
-//}
-//
-//void Interface::AcqEndCallback::acqFinished(const HwFrameInfoType& /*finfo*/)
-//{
-//	DEB_MEMBER_FUNCT();
-//	m_cam.stopAcq();
-//}

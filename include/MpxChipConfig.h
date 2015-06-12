@@ -47,8 +47,8 @@ public:
 	MpxPixelConfig(Version version, int nchip);
 	~MpxPixelConfig();
 	void reset();
-	void setPath(std::string path);
-	void loadConfig(std::string name);
+	void setPath(const std::string& path);
+	void loadConfig(const std::string& name);
 	void getMpxString(int chipid, std::string& mpxString);
 	void getChipArray(int chipid, MpxPixelArray& pixelArray);
 	void setTimePixMode(TimePixMode mode);
@@ -64,14 +64,14 @@ private:
 	std::string m_name;
 	std::vector<MpxPixelArray> m_array;
 
-	std::string getConfigFile(std::string name, int chip);
+	std::string getConfigFile(const std::string& name, int chip);
 };
 
 class MpxPixelArray {
 	DEB_CLASS_NAMESPC(DebModCamera, "Camera", "Maxipix");
 public:
 
-	MpxPixelArray(Version& version, std::string filename = "");
+	MpxPixelArray(Version& version, std::string& filename);
 	~MpxPixelArray();
 	void reset();
 	void getMpxString(std::string& mpxString);
@@ -95,9 +95,9 @@ private:
 	Version m_version;
 	uint8_t* m_arrays[4];
 	std::string m_filename;
-	std::string* m_arrayLabels;
-	uint8_t* m_arrayMask;
-	uint8_t* m_arrayDepth;
+	std::string m_arrayLabels[4];
+	uint8_t m_arrayMask[4];
+	uint8_t m_arrayDepth[4];
 
 	void setArrayValue(int index, uint8_t value);
 	uint8_t* getMaskArray();

@@ -31,30 +31,28 @@
 using namespace lima;
 using namespace lima::Maxipix;
 
+const int DEFLEN = 4;
+
 struct ArrayDefs {
-	std::string labels[4];
-	uint8_t mask[4];
-	uint8_t depth[4];
-	uint8_t bpcShift[4];
+	std::string labels[DEFLEN];
+	uint8_t mask[DEFLEN];
+	uint8_t depth[DEFLEN];
+	uint8_t bpcShift[DEFLEN];
 };
 struct ArrayDefs m_arrayDefs[] = {
-	 {{"Mask Array", "Test Array",
-		"Low Threshold Array", "High Threshold Array"},
+	{{"Mask Array", "Test Array", "Low Threshold Array", "High Threshold Array"},
 	{0x1, 0x1, 0x7, 0x7},
 	{1, 1, 3, 3},
 	{7, 6, 0, 3}},
-	 {{"Mask Array", "Test Array",
-		"Low Threshold Array", "High Threshold Array"},
+	{{"Mask Array", "Test Array", "Low Threshold Array", "High Threshold Array"},
 	{0x1, 0x1, 0x7, 0x7},
 	{1, 1, 3, 3},
 	{7, 6, 0, 3}},
-	 {{"Mask Array", "Test Array",
-		"Low Threshold Array", "High Threshold Array"},
+	{{"Mask Array", "Test Array", "Low Threshold Array", "High Threshold Array"},
 	{0x1, 0x1, 0x7, 0x7},
 	{1, 1, 3, 3},
 	{7, 6, 0, 3}},
-	{{"Mask Array", "Test Array",
-			"Threshold Array", "Pixel Mode Array"},
+	{{"Mask Array", "Test Array", "Threshold Array", "Pixel Mode Array"},
 	{0x1, 0x1, 0xf, 0x3},
 	{1, 1, 4, 2},
 	{7, 6, 0, 4}}
@@ -67,53 +65,52 @@ MpxPixelConfig::MpxPixelConfig(Version version, int nchip) {
 	reset();
 }
 
-MpxPixelConfig::~MpxPixelConfig() {}
+MpxPixelConfig::~MpxPixelConfig() {
+}
 
 void MpxPixelConfig::reset() {
 	DEB_MEMBER_FUNCT();
 	m_array.clear();
-	for (int idx=0; idx<m_nchip; idx++) {
-	    m_array.push_back(MpxPixelArray(m_version));
+	std::string blank = "";
+	for (int idx = 0; idx < m_nchip; idx++) {
+	  	  MpxPixelArray mpa = MpxPixelArray(m_version, blank);
+	  	  m_array.push_back(mpa);
 	}
 	m_name = "";
 }
 
-void MpxPixelConfig::setPath(std::string path) {
+void MpxPixelConfig::setPath(const std::string& path) {
 	DEB_MEMBER_FUNCT();
-    m_path = checkPath(path);
+	m_path = checkPath(path);
 }
 
-void MpxPixelConfig::loadConfig(std::string name) {
+void MpxPixelConfig::loadConfig(const std::string& name) {
 	DEB_MEMBER_FUNCT();
-	std::vector<std::string> files;
-	for (int idx=0; idx<m_nchip; idx++) {
-	    files.push_back(getConfigFile(name, idx+1));
-	}
-	for (int idx=0; idx<m_nchip; idx++) {
-	    m_array[idx].load(files[idx]);
+	for (int idx = 0; idx < m_nchip; idx++) {
+		m_array[idx].load(getConfigFile(name, idx + 1));
 	}
 }
 
 void MpxPixelConfig::getMpxString(int chipid, std::string& mpxString) {
 	DEB_MEMBER_FUNCT();
-	if (chipid < 1 || chipid >m_nchip) {
+	if (chipid < 1 || chipid > m_nchip) {
 		THROW_HW_ERROR(Error) << "Invalid chipid <" << chipid << ">. Range is [1," << m_nchip << "]";
 	}
-	m_array[chipid-1].getMpxString(mpxString);
+	m_array[chipid - 1].getMpxString(mpxString);
 }
 
 void MpxPixelConfig::getChipArray(int chipid, MpxPixelArray& pixelArray) {
 	DEB_MEMBER_FUNCT();
-	if (chipid < 1 || chipid >m_nchip) {
+	if (chipid < 1 || chipid > m_nchip) {
 		THROW_HW_ERROR(Error) << "Invalid chipid <" << chipid << ">. Range is [1," << m_nchip << "]";
 	}
-	pixelArray = m_array[chipid-1];
+	pixelArray = m_array[chipid - 1];
 }
 
 void MpxPixelConfig::setTimePixMode(TimePixMode mode) {
 	DEB_MEMBER_FUNCT();
-	for (int idx=0; idx<m_nchip; idx++) {
-	    m_array[idx].setTimePixMode(mode);
+	for (int idx = 0; idx < m_nchip; idx++) {
+		m_array[idx].setTimePixMode(mode);
 	}
 }
 
@@ -140,34 +137,34 @@ void MpxPixelConfig::getTimePixMode(TimePixMode& mode) {
 void MpxPixelConfig::setLow2Max(int chipid) {
 	DEB_MEMBER_FUNCT();
 	for (int idx = 0; idx < m_nchip; idx++) {
-	    m_array[idx].setLow2Max();
+		m_array[idx].setLow2Max();
 	}
 }
 
 void MpxPixelConfig::setLow2Min(int chipid) {
 	DEB_MEMBER_FUNCT();
 	for (int idx = 0; idx < m_nchip; idx++) {
-	    m_array[idx].setLow2Min();
+		m_array[idx].setLow2Min();
 	}
 }
 
 void MpxPixelConfig::setHigh2Max(int chipid) {
 	DEB_MEMBER_FUNCT();
 	for (int idx = 0; idx < m_nchip; idx++) {
-	    m_array[idx].setHigh2Max();
+		m_array[idx].setHigh2Max();
 	}
 }
 
 void MpxPixelConfig::setHigh2Min(int chipid) {
 	DEB_MEMBER_FUNCT();
 	for (int idx = 0; idx < m_nchip; idx++) {
-	    m_array[idx].setHigh2Min();
+		m_array[idx].setHigh2Min();
 	}
 }
 
-std::string MpxPixelConfig::getConfigFile(std::string name, int chip) {
+std::string MpxPixelConfig::getConfigFile(const std::string& name, int chip) {
 	DEB_MEMBER_FUNCT();
-	std::string ext[] = {"edf", "bpc"};
+	std::string ext[] = { "edf", "bpc" };
 	std::stringstream ss;
 	if (!m_path.empty()) {
 		ss << m_path << "/";
@@ -175,9 +172,9 @@ std::string MpxPixelConfig::getConfigFile(std::string name, int chip) {
 	ss << name << "_chip_" << chip << ".";
 	std::string root = ss.str();
 	std::string fname;
-	for (int i=0; i<2; i++) {
+	for (int i = 0; i < 2; i++) {
 		fname = root + ext[i];
-	    if (access(fname.c_str(), F_OK ) != -1)
+		if (access(fname.c_str(), F_OK) != -1)
 			return std::string(fname);
 	}
 	THROW_HW_ERROR(Error) << "No config file found for <" << root << "*>";
@@ -189,23 +186,25 @@ std::string MpxPixelConfig::getConfigFile(std::string name, int chip) {
  * filename : if a filename is given, tries to load it in either EDF or BPC
  *          format depending on file extension
  */
-MpxPixelArray::MpxPixelArray(Version& version, std::string filename) {
+MpxPixelArray::MpxPixelArray(Version& version, std::string& filename) {
 	m_version = version;
 	int idx = static_cast<int>(version);
-	m_arrayLabels = m_arrayDefs[idx].labels;
-	m_arrayMask = m_arrayDefs[idx].mask;
-	m_arrayDepth = m_arrayDefs[idx].depth;
-
-	for (unsigned idx=0; idx<m_arrayLabels->length(); idx++) {
-	    m_arrays[idx] = new uint8_t[ChipSize.getWidth()*ChipSize.getHeight()]();
+	for (int i=0; i<DEFLEN; i++) {
+	  m_arrayLabels[i] = m_arrayDefs[idx].labels[i];
+	  m_arrayMask[i] = m_arrayDefs[idx].mask[i];
+	  m_arrayDepth[i] = m_arrayDefs[idx].depth[i];
+	}
+	for (int i = 0; i < DEFLEN; i++) {
+		m_arrays[i] = new uint8_t[ChipSize.getWidth() * ChipSize.getHeight()];
+		::memset(m_arrays[i], 0, ChipSize.getWidth() * ChipSize.getHeight());
 	}
 	if (!filename.empty()) {
-	    load(filename);
+		load(filename);
 	}
 }
 MpxPixelArray::~MpxPixelArray() {
-	for (unsigned idx=0; idx<m_arrayLabels->length(); idx++) {
-		delete [] m_arrays[idx];
+	for (int idx = 0; idx < DEFLEN; idx++) {
+		delete[] m_arrays[idx];
 	}
 }
 
@@ -214,7 +213,7 @@ MpxPixelArray::~MpxPixelArray() {
  */
 void MpxPixelArray::reset() {
 	DEB_MEMBER_FUNCT();
-	for (int idx=0; idx < 4; idx++) {
+	for (int idx = 0; idx < DEFLEN; idx++) {
 		resetArray(idx);
 	}
 }
@@ -239,11 +238,11 @@ void MpxPixelArray::getMpxString(std::string& mpxString) {
 void MpxPixelArray::save(const std::string& filename) {
 	DEB_MEMBER_FUNCT();
 	int len = filename.length();
-	std::string ext = filename.substr(len-4);
+	std::string ext = filename.substr(len - 4);
 	if (ext == ".edf") {
-	    saveEdf(filename);
+		saveEdf(filename);
 	} else if (ext == ".bpc") {
-	    saveBpc(filename);
+		saveBpc(filename);
 	} else {
 		THROW_HW_ERROR(Error) << "Unknown file extension (not .edf or .bpc)";
 	}
@@ -255,20 +254,20 @@ void MpxPixelArray::save(const std::string& filename) {
  */
 void MpxPixelArray::load(const std::string& filename) {
 	DEB_MEMBER_FUNCT();
-    if (access(filename.c_str(), F_OK ) == -1)
-    	THROW_HW_ERROR(Error) << "Cannot find file <" << filename << ">";
+	if (access(filename.c_str(), F_OK) == -1)
+		THROW_HW_ERROR(Error) << "Cannot find file <" << filename << ">";
 
-    struct stat stat_buf;
-    int rc = stat(filename.c_str(), &stat_buf);
-    if (rc != 0 || stat_buf.st_size == 0) {
+	struct stat stat_buf;
+	int rc = stat(filename.c_str(), &stat_buf);
+	if (rc != 0 || stat_buf.st_size == 0) {
 		THROW_HW_ERROR(Error) << "<" << filename << "> is empty";
 	}
 	int len = filename.length();
-	std::string ext = filename.substr(len-4);
-	if (ext ==".edf") {
-	    loadEdf(filename);
-	} else if (ext ==".bpc") {
-	    loadBpc(filename);
+	std::string ext = filename.substr(len - 4);
+	if (ext == ".edf") {
+		loadEdf(filename);
+	} else if (ext == ".bpc") {
+		loadBpc(filename);
 	} else {
 		THROW_HW_ERROR(Error) << "Unknown file extension (not .edf or .bpc)";
 	}
@@ -281,11 +280,11 @@ void MpxPixelArray::loadBpc(const std::string& filename) {
 	DEB_MEMBER_FUNCT();
 	int fd;
 	try {
-	    fd = open(filename.c_str(),  O_RDONLY);
-	} catch(Exception& e) {
-	    THROW_HW_ERROR(Error) << "Cannot open <" << filename << "> for reading";
+		fd = open(filename.c_str(), O_RDONLY);
+	} catch (Exception& e) {
+		THROW_HW_ERROR(Error) << "Cannot open <" << filename << "> for reading";
 	}
-	int size = ChipSize.getWidth()*ChipSize.getHeight();
+	int size = ChipSize.getWidth() * ChipSize.getHeight();
 	uint8_t* data = new (std::nothrow) uint8_t[size];
 	if (!data) {
 		THROW_HW_ERROR(Error) << "Insufficient memory for loading file " << filename;
@@ -294,7 +293,7 @@ void MpxPixelArray::loadBpc(const std::string& filename) {
 	close(fd);
 
 	if (nbytes != size) {
-	    THROW_HW_ERROR(Error) << "<" << filename << "> has not the correct size";
+		THROW_HW_ERROR(Error) << "<" << filename << "> has not the correct size";
 	}
 	uint8_t* shift = m_arrayDefs[m_version].bpcShift;
 	reset();
@@ -302,19 +301,19 @@ void MpxPixelArray::loadBpc(const std::string& filename) {
 	if (!dataout) {
 		THROW_HW_ERROR(Error) << "Insufficient memory for loading file " << filename;
 	}
-	for (int i = 0; i<size; i++) {
+	for (int i = 0; i < size; i++) {
 		dataout[i] = (data[i] >> shift[MASK]) & m_arrayMask[MASK];
 	}
 	setMaskArray(data);
-	for (int i = 0; i<size; i++) {
+	for (int i = 0; i < size; i++) {
 		dataout[i] = (data[i] >> shift[TEST]) & m_arrayMask[TEST];
 	}
 	setTestArray(data);
-	for (int i = 0; i<size; i++) {
+	for (int i = 0; i < size; i++) {
 		dataout[i] = (data[i] >> shift[HIGH]) & m_arrayMask[HIGH];
 	}
 	setHighArray(data);
-	for (int i = 0; i<size; i++) {
+	for (int i = 0; i < size; i++) {
 		dataout[i] = data[i] & m_arrayMask[LOW];
 	}
 	setLowArray(data);
@@ -325,13 +324,13 @@ void MpxPixelArray::loadBpc(const std::string& filename) {
  */
 void MpxPixelArray::saveBpc(const std::string& filename) {
 	DEB_MEMBER_FUNCT();
-	int size = ChipSize.getWidth()*ChipSize.getHeight();
+	int size = ChipSize.getWidth() * ChipSize.getHeight();
 	uint8_t* shift = m_arrayDefs[m_version].bpcShift;
-	uint8_t* data = new (std::nothrow)uint8_t[size]();
+	uint8_t* data = new (std::nothrow) uint8_t[size]();
 	if (!data) {
 		THROW_HW_ERROR(Error) << "Insufficient memory for saving file " << filename;
 	}
-	for (int i=0; i<size; i++) {
+	for (int i = 0; i < size; i++) {
 		data[i] |= ((m_arrays[MASK][i] & m_arrayMask[MASK]) << shift[MASK]);
 		data[i] |= ((m_arrays[TEST][i] & m_arrayMask[TEST]) << shift[TEST]);
 		data[i] |= ((m_arrays[HIGH][i] & m_arrayMask[HIGH]) << shift[HIGH]);
@@ -341,7 +340,7 @@ void MpxPixelArray::saveBpc(const std::string& filename) {
 	fout.clear();
 	fout.exceptions(std::ios_base::failbit | std::ios_base::badbit);
 	fout.open(filename.c_str(), std::ios_base::out | std::ios_base::trunc);
-	fout.write((char*)data, size);
+	fout.write((char*) data, size);
 	fout.close();
 }
 
@@ -350,33 +349,34 @@ void MpxPixelArray::saveBpc(const std::string& filename) {
  */
 void MpxPixelArray::loadEdf(const std::string& filename) {
 	DEB_MEMBER_FUNCT();
-//Assumptions: As we save the header in 1024 bytes we will only read a header of that size
-// but at least test to check for the '}'. The data type will be uint8_t and size determined
-// by the chipsize.
+	//Assumptions: As we save the header in 1024 bytes we will only read a header of that size
+	// but at least test to check for the '}'. The data type will be uint8_t and size determined
+	// by the chipsize.
 	int headerSize = 1024;
-	std::ifstream file(filename.c_str(), std::ios_base::in|std::ios_base::binary|std::ios_base::ate);
+	std::ifstream file(filename.c_str(), std::ios_base::in | std::ios_base::binary | std::ios_base::ate);
 	if (file.is_open()) {
-	    long fileSize = file.tellg();
-	    file.seekg (0, std::ios::beg);
-	    if (fileSize != 4*headerSize*ChipSize.getWidth()*ChipSize.getHeight())
-		    THROW_HW_ERROR(Error) << "<" << filename << "> does not contain 4 images";
-	    reset();
+		long fileSize = file.tellg();
+		file.seekg(0, std::ios::beg);
+		if (fileSize != 4 * headerSize * ChipSize.getWidth() * ChipSize.getHeight()) {
+			THROW_HW_ERROR(Error) << "<" << filename << "> does not contain 4 images";
+		}
+		reset();
 		char *hdr = new char[headerSize];
-		long size = ChipSize.getWidth()*ChipSize.getHeight();
+		long size = ChipSize.getWidth() * ChipSize.getHeight();
 		uint8_t *data = new uint8_t[size];
-	 	for (int idx = 0; idx < 4; idx++) {
+		for (int idx = 0; idx < 4; idx++) {
 			file.read(hdr, headerSize);
 			if (hdr[1022] == '}') {
-			    THROW_HW_ERROR(Error) << "<" << filename << "> is not in EDF format";
+				THROW_HW_ERROR(Error) << "<" << filename << "> is not in EDF format";
 			}
-			file.read((char*)data, size);
-		    setArray(idx, data);
+			file.read((char*) data, size);
+			setArray(idx, data);
 		}
 		file.close();
-		delete [] hdr;
-		delete [] data;
+		delete[] hdr;
+		delete[] data;
 	} else {
-	    THROW_HW_ERROR(Error) << "Unable to open file <" << filename << ">";
+		THROW_HW_ERROR(Error) << "Unable to open file <" << filename << ">";
 	}
 }
 
@@ -389,7 +389,7 @@ void MpxPixelArray::saveEdf(const std::string& filename) {
 	fout.clear();
 	fout.exceptions(std::ios_base::failbit | std::ios_base::badbit);
 	fout.open(filename.c_str(), std::ios_base::out | std::ios_base::trunc);
-	for (int idx=0; idx<4; idx++) {
+	for (int idx = 0; idx < 4; idx++) {
 		std::stringstream header;
 		header << "{\n";
 		header << "HeaderID = EH:00000" << idx << ":000000:000000 ;\n"; // this line only applicable upto idx=9
@@ -398,17 +398,19 @@ void MpxPixelArray::saveEdf(const std::string& filename) {
 		header << "DataType = UnsignedByte ;\n";
 		header << "Dim_1 = " << ChipSize.getWidth() << " ;\n";
 		header << "Dim_2 = " << ChipSize.getHeight() << " ;\n";
-		header << "Size = " << ChipSize.getWidth()*ChipSize.getHeight() << " ;\n";
+		header << "Size = " << ChipSize.getWidth() * ChipSize.getHeight()
+				<< " ;\n";
 		header << "MedipixConfig = " << m_arrayLabels[idx] << " ;\n";
 		int hsize = header.str().length();
 		int ssize = 1024 - hsize % 1024 - 2;
 		if (ssize < 0)
 			ssize += 1024;
 		if (ssize)
-			for (int i=0; i<ssize; i++)
+			for (int i = 0; i < ssize; i++)
 				header << " ";
 		header << "}\n";
-		fout.write((char*)m_arrays[idx], ChipSize.getWidth()*ChipSize.getHeight());
+		fout.write((char*) m_arrays[idx],
+				ChipSize.getWidth() * ChipSize.getHeight());
 	}
 	fout.close();
 }
@@ -467,11 +469,14 @@ void MpxPixelArray::saveMask(const std::string& filename) {
 	header << "MedipixConfig = " << m_arrayLabels[MASK] << " ;\n";
 	int hsize = header.str().length();
 	int ssize = 1024 - hsize % 1024 - 2;
-	if (ssize < 0)
+	if (ssize < 0) {
 		ssize += 1024;
-	if (ssize)
-		for (int i = 0; i < ssize; i++)
+	}
+	if (ssize) {
+		for (int i = 0; i < ssize; i++) {
 			header << " ";
+		}
+	}
 	header << "}\n";
 	fout.write((char*) getMaskArray(), ChipSize.getWidth() * ChipSize.getHeight());
 	fout.close();
@@ -504,7 +509,7 @@ void MpxPixelArray::getTimePixMode(MpxPixelConfig::TimePixMode& mode) {
 	int imode = harr[0];
 	long size = ChipSize.getWidth() * ChipSize.getHeight();
 	int sum = 0;
-	for (int idx=0; idx<size; idx++) {
+	for (int idx = 0; idx < size; idx++) {
 		if (harr[idx] != imode) {
 			sum += harr[idx];
 		}
@@ -541,7 +546,7 @@ void MpxPixelArray::setHigh2Min() {
 
 void MpxPixelArray::setArrayValue(int index, uint8_t value) {
 	DEB_MEMBER_FUNCT();
-	::memset(m_arrays[index], value, ChipSize.getWidth()*ChipSize.getHeight());
+	::memset(m_arrays[index], value, ChipSize.getWidth() * ChipSize.getHeight());
 }
 
 uint8_t* MpxPixelArray::getMaskArray() {
@@ -594,8 +599,8 @@ void MpxPixelArray::setArray(int index, uint8_t* data) {
 	long size = ChipSize.getWidth() * ChipSize.getHeight();
 //	uint8_t* bptr = m_arrays[index];
 //	uint8_t* bptr2 = m_arrayMask[index];
-	for (int idx=0; idx<size; idx++) {
-		m_arrays[index][idx] |= (data[idx]);// & bptr2[idx]);
+	for (int idx = 0; idx < size; idx++) {
+		m_arrays[index][idx] |= (data[idx]); // & bptr2[idx]);
 	}
 }
 
@@ -621,9 +626,6 @@ void MpxPixelArray::resetHighArray() {
 
 void MpxPixelArray::resetArray(int index) {
 	DEB_MEMBER_FUNCT();
-	::memset(m_arrays[index], 0, ChipSize.getWidth()*ChipSize.getHeight());
+	::memset(m_arrays[index], 0, ChipSize.getWidth() * ChipSize.getHeight());
 }
-
-
-
 

@@ -94,7 +94,7 @@ void convert_from_string(const std::string& val, Version& version) {
 	if (buffer == "MPX2") {
 		version = MPX2;
 	} else if (buffer == "MXR2") {
-		version = MPX2;
+		version = MXR2;
 	} else if (buffer == "TPX1") {
 		version = TPX1;
 	} else if (buffer == "DUMMY") {
@@ -167,8 +167,8 @@ const string convert_2_string(const MaxipixReconstruction::Layout& layout) {
 	string name;
 	switch (layout) {
 	case MaxipixReconstruction::L_NONE: name = "L_NONE"; break;
-	case MaxipixReconstruction::L_2x2: name = "L_2x2"; break;
-	case MaxipixReconstruction::L_5x1: name = "L_5x1"; break;
+	case MaxipixReconstruction::L_2x2: name = "L_2X2"; break;
+	case MaxipixReconstruction::L_5x1: name = "L_5X1"; break;
 	case MaxipixReconstruction::L_FREE: name = "L_FREE"; break;
 	case MaxipixReconstruction::L_GENERAL: name = "L_GENERAL"; break;
 	default: name = "Unknown"; break;
@@ -181,9 +181,9 @@ void convert_from_string(const std::string& val, MaxipixReconstruction::Layout& 
 	std::transform(buffer.begin(), buffer.end(), buffer.begin(), ::toupper);
 	if (buffer == "L_NONE") {
 		layout = MaxipixReconstruction::L_NONE;
-	} else if (buffer == "L_2x2") {
+	} else if (buffer == "L_2X2") {
 		layout = MaxipixReconstruction::L_2x2;
-	} else if (buffer == "L_5x1") {
+	} else if (buffer == "L_5X1") {
 		layout = MaxipixReconstruction::L_5x1;
 	} else if (buffer == "L_FREE") {
 		layout = MaxipixReconstruction::L_FREE;

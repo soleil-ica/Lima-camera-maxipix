@@ -44,30 +44,49 @@ class MpxDetConfig {
 public:
 	MpxDetConfig(std::string path="", std::string name="");
 	~MpxDetConfig();
-    void reset();
-	void setPath(std::string path);
-	void loadConfig(std::string name);
+	void reset();
+	void setPath(const std::string& path);
+	void loadConfig(const std::string& name);
 
-    void getPath(std::string& path) const;
+	void getPath(std::string& path) const;
 	void getName(std::string& name) const;
 	void getFilename(std::string& filename) const;
 	void getMpxCfg(std::map<std::string, int>& config) const;
 	void getPriamPorts(std::vector<int>& ports) const;
-	void getDacs(MpxDacs* dacs) const;
+	void getDacs(MpxDacs*& dacs) const;
 	void getPositionList(MaxipixReconstruction::PositionList& positions) const;
-    void loadDetectorConfig(std::string& fname);
-    void getFrequency(float& frequency) { frequency = m_frequency; }
+	void loadDetectorConfig(std::string& fname);
 	void getConfigFile(const std::string& name, std::string& cfgFile);
+
+	void getAsicType(Version& asicType) { asicType = m_asicType; }
+	void getNChips(int& nchips) { nchips = m_nchips; }
+	void getXGap(int& xgap) { xgap = m_xgap; }
+	void getYGap(int& ygap) { ygap = m_ygap; }
+	void getXChips(int& xchips) { xchips = m_xchips; }
+	void getYChips(int& ychips) { ychips = m_ychips; }
+	void getFrequency(float& frequency) { frequency = m_frequency; }
+	void getEnergy(double& energy) { energy = m_energy; }
+	void getPolarity(Polarity& polarity) { polarity = m_polarity; }
+	void getLayout(MaxipixReconstruction::Layout& layout) { layout = m_layout; }
 
 private:
 	std::string m_path;
 	std::string m_name;
 	std::string m_cfgFile;
+	int m_nchips;
+	int m_xchips;
+	int m_ychips;
+	int m_xgap;
+	int m_ygap;
+	double m_energy;
+	Version m_asicType;
+	Polarity m_polarity;
 	float m_frequency;
 	std::map<std::string, int> m_mpxCfg;
 	std::vector<int> m_priamPorts;
 	MpxDacs *m_dacs;
 	MaxipixReconstruction::PositionList m_positions;
+	MaxipixReconstruction::Layout m_layout;
 	std::string m_section;
 
 	void parseDetModuleSection(INIReader& reader);

@@ -33,14 +33,14 @@
 using namespace lima;
 using namespace lima::Maxipix;
 
-MpxDetConfig::MpxDetConfig(std::string path, std::string name) : m_mpxCfg(), m_priamPorts(){
+MpxDetConfig::MpxDetConfig(std::string path, std::string name) : m_priamPorts(), m_dacs(NULL) {
 //	m_path = NULL;
 	reset();
 	if (!path.empty()) {
-	    setPath(path);
+		setPath(path);
 	}
 	if (!name.empty()) {
-	    loadConfig(name);
+		loadConfig(name);
 	}
 }
 
@@ -51,25 +51,25 @@ void MpxDetConfig::reset() {
 	DEB_MEMBER_FUNCT();
 	m_name = "";
 	m_cfgFile = "";
-	m_mpxCfg.clear();
+//	m_mpxCfg.clear();
 	m_priamPorts.clear();
-	m_dacs = NULL;
+//	m_dacs = NULL;
 }
 
-void MpxDetConfig::setPath(std::string path) {
+void MpxDetConfig::setPath(const std::string& path) {
 	DEB_MEMBER_FUNCT();
 	if (checkPath(path)) {
 		m_path= path;
 	}
 }
 
-void MpxDetConfig::loadConfig(std::string name) {
+void MpxDetConfig::loadConfig(const std::string& name) {
 	DEB_MEMBER_FUNCT();
 	std::string cfgFile;
 	getConfigFile(name, cfgFile);
-    m_cfgFile= cfgFile;
+	m_cfgFile= cfgFile;
 	loadDetectorConfig(cfgFile);
-    m_name= name;
+	m_name= name;
 }
 
 void MpxDetConfig::getPath(std::string& path) const {
@@ -84,15 +84,15 @@ void MpxDetConfig::getFilename(std::string& cfgFile) const {
 	cfgFile = m_cfgFile;
 }
 
-void MpxDetConfig::getMpxCfg(std::map<std::string, int>& config) const {
-	config = m_mpxCfg;
-}
+//void MpxDetConfig::getMpxCfg(std::map<std::string, int>& config) const {
+//	config = m_mpxCfg;
+//}
 
 void MpxDetConfig::getPriamPorts(std::vector<int>& ports) const {
 	ports =  m_priamPorts;
 }
 
-void MpxDetConfig::getDacs(MpxDacs *dacs) const {
+void MpxDetConfig::getDacs(MpxDacs*& dacs) const {
 	dacs = m_dacs;
 }
 
@@ -104,7 +104,7 @@ void MpxDetConfig::getConfigFile(const std::string& name, std::string& cfgFile) 
 	DEB_MEMBER_FUNCT();
 	cfgFile = name + ".cfg";
 	if (!m_path.empty()) {
-	    cfgFile = m_path + "/" + cfgFile;
+		cfgFile = m_path + "/" + cfgFile;
 	}
 }
 
@@ -112,9 +112,9 @@ void MpxDetConfig::loadDetectorConfig(std::string& fname) {
 	DEB_MEMBER_FUNCT();
 
 	INIReader reader(fname);
-    if (reader.ParseError() < 0) {
+	if (reader.ParseError() < 0) {
 		THROW_HW_ERROR(Error) << "I/O error while reading file.";
-    }
+	}
 	std::string type = reader.Get("config", "type", "Unknown");
 	std::string version = reader.Get("config", "version", "Unknown");
 	if (type != "MAXIPIX" && version != "1.0") {
@@ -122,7 +122,7 @@ void MpxDetConfig::loadDetectorConfig(std::string& fname) {
 				<< "> is not a valid MAXIPIX configuration file, 'version' is not 1.0 ";
 	}
 	parseDetModuleSection(reader);
-    parseLayoutSection(reader);
+	parseLayoutSection(reader);
 	parseDacsSection(reader);
 	parseCalibrationSection(reader);
 }
@@ -130,7 +130,7 @@ void MpxDetConfig::loadDetectorConfig(std::string& fname) {
 void MpxDetConfig::parseDetModuleSection(INIReader& reader) {
 	DEB_MEMBER_FUNCT();
 	std::string section = "detmodule";
-	std::map<std::string, int> m_mpxCfg;
+	//	std::map<std::string, int> m_mpxCfg;
 
 	reader.Get(section, "connection", "Unknown"); // not used
 	reader.Get(section, "sensor", "Unknown"); // not used
@@ -146,31 +146,27 @@ void MpxDetConfig::parseDetModuleSection(INIReader& reader) {
 	reader.Get(section, "name_4", "Unknown"); // not used
 
 	std::string type = reader.Get(section, "asic", "Unknown");
-	Version version;
-	convert_from_string(type, version); // Checks for validity
-	m_mpxCfg["version"] = static_cast<int>(version);
+	convert_from_string(type, m_asicType); // Checks for validity
+	//	m_mpxCfg["version"] = static_cast<int>(m_asicType);
+	DEB_TRACE() << DEB_VAR2(type, m_asicType);
 
-	DEB_TRACE() << DEB_VAR1(m_mpxCfg["version"]);
-	
 	std::string polarity = reader.Get(section, "polarity", "Unknown");
-	Polarity polarityType;
-	convert_from_string(polarity, polarityType); // Checks for validity
-	m_mpxCfg["polarity"] = static_cast<int>(polarityType);
+	convert_from_string(polarity, m_polarity); // Checks for validity
+	//	m_mpxCfg["polarity"] = static_cast<int>(m_polarity);
 
 	double value;
 	getMandatoryParam(reader, section, "frequency", value);
-	m_frequency = (float) m_frequency;
+	m_frequency = (float) value;
 
-	int nchips;
-	getMandatoryParam(reader, section, "nchips", nchips);
-	m_mpxCfg["nchips"] = nchips;
+	getMandatoryParam(reader, section, "nchips", m_nchips);
+	//	m_mpxCfg["nchips"] = m_nchips;
+	DEB_TRACE() << DEB_VAR1(m_nchips);
 
 	// the startup energy
-	int energy;
-	getMandatoryParam(reader, section, "energy", energy);
-	m_mpxCfg["energy"] = energy;
+	getMandatoryParam(reader, section, "energy", m_energy);
+	//	m_mpxCfg["energy"] = m_energy;
 
-	for (int idx = 0; idx < nchips; idx++) {
+	for (int idx = 0; idx < m_nchips; idx++) {
 		std::stringstream name;
 		name << "chip_" << idx + 1;
 		int port;
@@ -189,34 +185,28 @@ void MpxDetConfig::parseLayoutSection(INIReader& reader) {
 	DEB_MEMBER_FUNCT();
 	std::string section = "layout_standard";
 
-	m_mpxCfg["xchips"] = m_mpxCfg["nchips"];
-	m_mpxCfg["ychips"] = 1;
-	m_mpxCfg["xgap"] = m_mpxCfg["ygap"] = 0;
-	m_mpxCfg["positions"] = 0;
+	//	m_mpxCfg["positions"] = 0;
 
-	MaxipixReconstruction::Layout layout;
+	//	MaxipixReconstruction::Layout layout;
 	std::string layoutStr = reader.Get(section, "layout", "Unknown");
-	convert_from_string(layoutStr, layout); // checks for validity
-	m_mpxCfg["layout"] = static_cast<int>(layout);
+	convert_from_string(layoutStr, m_layout); // checks for validity
+	//	m_mpxCfg["layout"] = static_cast<int>(layout);
+	DEB_TRACE() << DEB_VAR1(m_layout);
 
 	// layout paramters for standard monolithic maxipix 2x2 or 5x5 with gap reconstruction
-	if (layout == MaxipixReconstruction::L_2x2  || layout == MaxipixReconstruction::L_5x1) {
+	if (m_layout == MaxipixReconstruction::L_2x2  || m_layout == MaxipixReconstruction::L_5x1) {
 		// xchips, ychips and xgap are mandatory
-		int xchips;
 		Range<int>range = Range<int>(1,6);
-		getMandatoryParam(reader, section, "xchips", xchips, range);
-		m_mpxCfg["xchips"] = xchips;
-		int ychips;
+		getMandatoryParam(reader, section, "xchips", m_xchips, range);
+		//		m_mpxCfg["xchips"] = m_xchips;
 		range = Range<int>(1,2);
-		getMandatoryParam(reader, section, "ychips", ychips, range);
-		m_mpxCfg["ychips"] = ychips;
-		int xgap;
+		getMandatoryParam(reader, section, "ychips", m_ychips, range);
+		//		m_mpxCfg["ychips"] = m_ychips;
 		range = Range<int>(1, 5);
-		getMandatoryParam(reader, section, "xgap", xgap, range);
-		m_mpxCfg["xgap"] = xgap;
-		int ygap;
-		getMandatoryParam(reader, section, "ygap", ygap, range);
-		m_mpxCfg["ygap"] = ygap;
+		getMandatoryParam(reader, section, "xgap", m_xgap, range);
+		//		m_mpxCfg["xgap"] = m_xgap;
+		getMandatoryParam(reader, section, "ygap", m_ygap, range);
+		//		m_mpxCfg["ygap"] = m_ygap;
 
 		reader.Get(section, "pos_1", "00"); // not used
 		reader.Get(section, "pos_2", "00"); // not used
@@ -228,9 +218,9 @@ void MpxDetConfig::parseLayoutSection(INIReader& reader) {
 		reader.GetInteger(section, "rot_4",-1); // not used
 		// layout paramters for general reconstruction, position  are mandatory
 		// included L_FREE, a faster reconstruction when there is only rotation on chips
-	} else if (layout == MaxipixReconstruction::L_GENERAL || layout == MaxipixReconstruction::L_FREE) {
+	} else if (m_layout == MaxipixReconstruction::L_GENERAL || m_layout == MaxipixReconstruction::L_FREE) {
 			parseLayoutGeneralSection(reader);
-	} else if (layout == MaxipixReconstruction::L_NONE) {
+	} else if (m_layout == MaxipixReconstruction::L_NONE) {
 			return;
 	} else {
 		THROW_HW_ERROR(Error) << "No <layout_standard> section found";
@@ -240,16 +230,15 @@ void MpxDetConfig::parseLayoutSection(INIReader& reader) {
 void MpxDetConfig::parseLayoutGeneralSection(INIReader& reader) {
 	DEB_MEMBER_FUNCT();
 	std::string section = "layout_general";
-	for (int idx = 1; idx <= m_mpxCfg["nchips"]; idx++) {
+	for (int idx = 1; idx <= m_nchips; idx++) {
 		MaxipixReconstruction::Position position;
 
 		std::stringstream rname;
 		rname << "rot_" << idx;
-		std::string rotation;
-		std::string layoutStr = reader.Get(section, rname.str(), rotation);
-		RotationMode rotationMode;
-		convert_from_string(rname.str(), rotationMode); // check for validity
-		m_mpxCfg[rname.str()] = static_cast<int>(rotationMode);
+		int rotation;
+		getMandatoryParam(reader, section, rname.str(), rotation);
+		RotationMode rotationMode = static_cast<RotationMode>(rotation);
+		//		m_mpxCfg[rname.str()] = rotation;
 		position.rotation = rotationMode;
 
 		std::stringstream xname;
@@ -257,14 +246,14 @@ void MpxDetConfig::parseLayoutGeneralSection(INIReader& reader) {
 		int x;
 		Range<int> range = Range<int>(0, 2048);
 		getMandatoryParam(reader, section, xname.str(), x, range);
-		m_mpxCfg[xname.str()] = x;
-		((Point) position.origin).x = m_mpxCfg[xname.str()];
+		//		m_mpxCfg[xname.str()] = x;
+		((Point) position.origin).x = x;
 		std::stringstream yname;
 		yname << "yc_" << idx;
 		int y;
 		getMandatoryParam(reader, section, yname.str(), y, range);
-		m_mpxCfg[yname.str()] = y;
-		((Point) position.origin).y = m_mpxCfg[yname.str()];
+		//		m_mpxCfg[yname.str()] = y;
+		((Point) position.origin).y = y;
 
 		m_positions.push_back(position);
 	}
@@ -273,10 +262,9 @@ void MpxDetConfig::parseLayoutGeneralSection(INIReader& reader) {
 void MpxDetConfig::parseDacsSection(INIReader& reader) {
 	DEB_MEMBER_FUNCT();
 	std::string section = "dacs";
-	int nchips = m_mpxCfg["nchips"];
-	m_dacs =  new MpxDacs(static_cast<Version>(m_mpxCfg["version"]), nchips);
+	m_dacs =  new MpxDacs(m_asicType, m_nchips);
 	std::map<std::string, int> dacMap;
-	std::vector<std::string> fsrKeys = MpxFsrDef::getInstance(static_cast<Version>(m_mpxCfg["version"]))->listKeys();
+	std::vector<std::string> fsrKeys = MpxFsrDef::getInstance(m_asicType)->listKeys();
 
 	for (std::vector<std::string>::iterator it = fsrKeys.begin(); it != fsrKeys.end(); ++it) {
 		std::string name = *it;
@@ -294,7 +282,7 @@ void MpxDetConfig::parseCalibrationSection(INIReader& reader) {
 	std::string mode = reader.Get(section, "mode", "Unknown"); // not used
 	std::map<int, int> thlnoise;
 	std::map<int, int> thlxray;
-	for (int idx = 1; idx <= m_mpxCfg["nchips"]; idx++) {
+	for (int idx = 1; idx <= m_nchips; idx++) {
 		std::stringstream noise;
 		noise << "thlnoise_" << idx;
 		int value;
@@ -351,6 +339,3 @@ void MpxDetConfig::getMandatoryParam(INIReader& reader, std::string section, std
 		THROW_HW_ERROR(Error) << ss.str();
 	}
 }
-
-
-

@@ -28,8 +28,9 @@ CXXFLAGS = -I../include \
 		   -I../tools/cpp \
 	        -Wall -pthread -g
 INCLUDES = -I../include \
-                   -I../tools/src \
+           -I../tools/src \
            -I../../../common/include \
+           -I../../../control/include \
            -I../../../hardware/include \
            -I../../common/espia/include \
            -I$(ESPIA_DRV_INCL) \

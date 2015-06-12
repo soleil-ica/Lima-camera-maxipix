@@ -29,7 +29,8 @@
 using namespace lima;
 using namespace lima::Maxipix;
 
-Camera::Camera(int espia_dev_nb, const std::string config_path, const std::string config_name, bool reconstruction) :
+Camera::Camera(int espia_dev_nb, const std::string& config_path,
+	       const std::string& config_name, bool reconstruction) :
 		m_edev(Espia::Dev(espia_dev_nb)),
 		m_eser(Espia::SerialLine(m_edev)),
 		m_espiaAcq(Espia::Acq(m_edev)),
@@ -37,8 +38,8 @@ Camera::Camera(int espia_dev_nb, const std::string config_path, const std::strin
 		m_priamSerial(PriamSerial(m_eser)),
 		m_priamAcq(PriamAcq(m_priamSerial)),
 		m_cfgName(config_name),
-		m_xchip(0),
-		m_ychip(0),
+		m_xchips(0),
+		m_ychips(0),
 		m_xgap(0),
 		m_ygap(0),
 		m_type(Bpp16),
@@ -47,7 +48,8 @@ Camera::Camera(int espia_dev_nb, const std::string config_path, const std::strin
 		m_no_reconstruction(reconstruction),
 		m_layout(MaxipixReconstruction::L_NONE),
 		m_acq_end_cb(*this),
-		m_cfgPath(config_path){
+		m_cfgPath(config_path),
+		m_bufferCtrlObj() {
 
 	DEB_CONSTRUCTOR();
 	m_reconstruct = NULL;
@@ -58,9 +60,9 @@ Camera::Camera(int espia_dev_nb, const std::string config_path, const std::strin
 }
 
 Camera::~Camera() {
-    DEB_DESTRUCTOR();
-	delete [] m_chipCfg;
-	delete [] m_mpxDacs;
+	DEB_DESTRUCTOR();
+	delete[] m_chipCfg;
+	delete[] m_mpxDacs;
 }
 
 void Camera::reset(HwInterface::ResetLevel reset_level) {
@@ -84,6 +86,8 @@ void Camera::prepareAcq() {
 void Camera::startAcq() {
 	DEB_MEMBER_FUNCT();
 	if (m_prepare_flag || m_acqMode == Accumulation) {
+		StdBufferCbMgr& buffer_mgr = m_bufferCtrlObj.getBuffer();
+		buffer_mgr.setStartTimestamp(Timestamp::now());
 		m_espiaAcq.start();
 		m_prepare_flag = false;
 	}
@@ -97,8 +101,7 @@ void Camera::stopAcq() {
 	m_prepare_flag = false;
 }
 
-int Camera::getNbHwAcquiredFrames()
-{
+int Camera::getNbHwAcquiredFrames() {
 	DEB_MEMBER_FUNCT();
 	Espia::Acq::Status acq_status;
 	m_espiaAcq.getStatus(acq_status);
@@ -126,40 +129,34 @@ bool Camera::checkTrigMode(TrigMode trig_mode, bool accumulation_mode) {
 	return valid_mode;
 }
 
-void Camera::setTrigMode(TrigMode trig_mode)
-{
-    DEB_MEMBER_FUNCT();
-    m_priamAcq.setTriggerMode(trig_mode);
+void Camera::setTrigMode(TrigMode trig_mode) {
+	DEB_MEMBER_FUNCT();
+	m_priamAcq.setTriggerMode(trig_mode);
 }
 
-void Camera::getTrigMode(TrigMode& trig_mode)
-{
-    DEB_MEMBER_FUNCT();
-    m_priamAcq.getTriggerMode(trig_mode);
+void Camera::getTrigMode(TrigMode& trig_mode) {
+	DEB_MEMBER_FUNCT();
+	m_priamAcq.getTriggerMode(trig_mode);
 }
 
-void Camera::setExpTime(double exp_time)
-{
-    DEB_MEMBER_FUNCT();
-    double set_time;
-    m_priamAcq.setExposureTime(exp_time, set_time);
+void Camera::setExpTime(double exp_time) {
+	DEB_MEMBER_FUNCT();
+	double set_time;
+	m_priamAcq.setExposureTime(exp_time, set_time);
 }
-void Camera::getExpTime(double& exp_time)
-{
-    DEB_MEMBER_FUNCT();
-    m_priamAcq.getExposureTime(exp_time);
+void Camera::getExpTime(double& exp_time) {
+	DEB_MEMBER_FUNCT();
+	m_priamAcq.getExposureTime(exp_time);
 }
 
-void Camera::setLatTime(double lat_time)
-{
-    DEB_MEMBER_FUNCT();
-    double set_time;
-    m_priamAcq.setIntervalTime(lat_time, set_time);
+void Camera::setLatTime(double lat_time) {
+	DEB_MEMBER_FUNCT();
+	double set_time;
+	m_priamAcq.setIntervalTime(lat_time, set_time);
 }
-void Camera::getLatTime(double& lat_time)
-{
-    DEB_MEMBER_FUNCT();
-    m_priamAcq.getIntervalTime(lat_time);
+void Camera::getLatTime(double& lat_time) {
+	DEB_MEMBER_FUNCT();
+	m_priamAcq.getIntervalTime(lat_time);
 }
 
 void Camera::setNbHwFrames(int nb_frames) {
@@ -222,13 +219,16 @@ void Camera::getDetectorModel(std::string& type) {
 	DEB_MEMBER_FUNCT();
 	std::stringstream ss;
 
+	DEB_TRACE() << "&&&&&&&&&&&&&&&&&" << DEB_VAR1(m_layout);
+
 	switch (m_layout) {
 	case MaxipixReconstruction::L_NONE:
-		ss << m_xchip << "x" << 1 << "(flatten out)-";
+		ss << m_xchips << "x" << 1 << "(flatten out)-";
 		break;
 	case MaxipixReconstruction::L_2x2:
 	case MaxipixReconstruction::L_5x1:
-		ss << m_xchip << "x" << m_ychip << "(gap:" << m_xgap << "x" << m_ygap << ")-";
+		ss << m_xchips << "x" << m_ychips << "(gap:" << m_xgap << "x" << m_ygap
+				<< ")-";
 		break;
 	case MaxipixReconstruction::L_FREE:
 		ss << m_nchips << "x" << 1 << " chip(s) with rotation (FREE layout)-";
@@ -245,9 +245,7 @@ void Camera::getDetectorModel(std::string& type) {
 void Camera::setShutterMode(ShutterMode shut_mode) {
 	DEB_MEMBER_FUNCT();
 	PriamAcq::ShutterMode cam_mode;
-	cam_mode =
-			(shut_mode == ShutterAutoFrame) ?
-					PriamAcq::FRAME : PriamAcq::SEQUENCE;
+	cam_mode = (shut_mode == ShutterAutoFrame) ? PriamAcq::FRAME : PriamAcq::SEQUENCE;
 	m_priamAcq.setShutterMode(cam_mode);
 }
 
@@ -294,33 +292,37 @@ bool Camera::isAcqRunning() {
 	return acq_status.running;
 }
 
+HwBufferCtrlObj* Camera::getBufferCtrlObj() {
+	return &m_bufferCtrlObj;
+}
+
 ///////////////////////////////////////////////////////////////////////////////////
 // Maxipix specific
 ///////////////////////////////////////////////////////////////////////////////////
 
 void Camera::init() {
 	m_edev.resetLink();
-    m_priamAcq.setTimeUnit(PriamAcq::UNIT_S);
+	m_priamAcq.setTimeUnit(PriamAcq::UNIT_S);
 	m_espiaAcq.registerAcqEndCallback(m_acq_end_cb);
-    setNbChip(1, 1);
+	setNbChip(1, 1);
 	if (!m_cfgPath.empty() && !m_cfgName.empty()) {
 		loadConfig(m_cfgName, m_no_reconstruction);
 	}
 }
 void Camera::setPath(const std::string& path) {
-  m_cfgPath = path;
+	m_cfgPath = path;
 }
 void Camera::setVersion(Version version) {
 	DEB_MEMBER_FUNCT();
 	m_version = version;
 }
 
-void Camera::setNbChip(int xchip, int ychip) {
+void Camera::setNbChip(int xchips, int ychips) {
 	DEB_MEMBER_FUNCT();
-	if ((xchip != m_xchip) || (ychip != m_ychip)) {
-		m_xchip = xchip;
-		m_ychip = ychip;
-		m_nchips = m_xchip * m_ychip;
+	if ((xchips != m_xchips) || (ychips != m_ychips)) {
+		m_xchips = xchips;
+		m_ychips = ychips;
+		m_nchips = m_xchips * m_ychips;
 	}
 }
 
@@ -346,13 +348,12 @@ void Camera::setChipsPosition(
 	m_positions = positions;
 }
 
-
 MaxipixReconstruction* Camera::getReconstructionTask() {
 	DEB_MEMBER_FUNCT();
 	MaxipixReconstruction *reconstruction = NULL;
 	switch (m_layout) {
 	case MaxipixReconstruction::L_NONE: // No reconstruction
-		m_size = Size(m_xchip * 256, 256);
+		m_size = Size(m_xchips * 256, 256);
 		break;
 	case MaxipixReconstruction::L_FREE:
 	case MaxipixReconstruction::L_GENERAL:
@@ -397,36 +398,45 @@ void Camera::setFillMode(MaxipixReconstruction::Type fillMode) {
 	}
 }
 
-void Camera::loadConfig(const std::string& name, bool reconstruction)  {
+void Camera::loadConfig(const std::string& name, bool reconstruction) {
 	DEB_MEMBER_FUNCT();
 //	thread.start_new_thread(Camera._loadConfig,(self,m_hwInt,name,reconstruction))
-	acqLoadConfig(name,reconstruction);
+	acqLoadConfig(name, reconstruction);
 }
 
 void Camera::loadDetConfig(const std::string& name, bool reconstruction) {
 	DEB_MEMBER_FUNCT();
 	double settime;
+	float frequency;
+	Polarity polarity;
+
 	MpxDetConfig detConfig = MpxDetConfig();
 	detConfig.setPath(m_cfgPath);
 	DEB_TRACE() << "Loading Detector Config <" << name << "> ...";
 	detConfig.loadConfig(name);
 //	detConfig.getName(m_cfgName);
 	detConfig.getFilename(m_cfgFilename);
-	detConfig.getMpxCfg(m_mpxCfg);
+//	detConfig.getMpxCfg(m_mpxCfg);
 	detConfig.getPriamPorts(m_priamPorts);
 	detConfig.getDacs(m_mpxDacs);
 	detConfig.getPositionList(m_positions);
-	m_version = static_cast<Version>(m_mpxCfg["version"]);
+	detConfig.getAsicType(m_version);
+	detConfig.getXGap(m_xgap);
+	detConfig.getYGap(m_ygap);
+	detConfig.getXChips(m_xchips);
+	detConfig.getYChips(m_ychips);
+	detConfig.getLayout(m_layout);
 	m_mpxDacs->setPriamPars(&m_priamAcq, &m_priamPorts);
+	DEB_TRACE() << "++++++++++++++++++++++++++++++++++++++++++++++++++";
+	DEB_TRACE() << DEB_VAR1(m_layout);
 
 	DEB_TRACE() << "Setting PRIAM configuration ...";
 	std::string fsrString;
 	m_mpxDacs->getFsrString(1, fsrString);
-	float frequency;
 	detConfig.getFrequency(frequency);
-	m_priamAcq.setup(static_cast<Maxipix::Version>(m_mpxCfg["version"]),
-			static_cast<Maxipix::Polarity>(m_mpxCfg["polarity"]), frequency, fsrString);
+	detConfig.getPolarity(polarity);
 
+	m_priamAcq.setup(m_version, polarity, frequency, fsrString);
 	m_priamAcq.setParallelReadout(m_priamPorts);
 	m_priamAcq.setImageMode(PriamAcq::NORMAL);
 	m_priamAcq.setGateMode(PriamAcq::INACTIVE);
@@ -434,14 +444,16 @@ void Camera::loadDetConfig(const std::string& name, bool reconstruction) {
 	m_priamAcq.setIntervalTime(0.0, settime);
 	m_priamAcq.setShutterTime(0.0, settime);
 
-    // Ask Dacs obj to apply the new FSR registers (DACS values)
-    // with a startup energy
-    m_mpxDacs->setEnergy(m_mpxCfg["energy"]);
+	// Ask Dacs obj to apply the new FSR registers (DACS values)
+	// with a startup energy
+	double energy;
+	detConfig.getEnergy(energy);
+	m_mpxDacs->setEnergy(energy);
 	m_mpxDacs->applyChipDacs(0);
-    DEB_TRACE() << "Startup energy threshold = " << m_mpxCfg["energy"] << " KeV";
+	DEB_TRACE() << "Startup energy threshold = " << energy << " KeV";
 
-    // Reconstruction can be not apply if requested
-    setReconstructionActive(reconstruction);
+	// Reconstruction can be not apply if requested
+	setReconstructionActive(reconstruction);
 }
 
 void Camera::setReconstructionActive(bool active) {
@@ -453,9 +465,9 @@ void Camera::setReconstructionActive(bool active) {
 	}
 //	m_hwInt.setReconstructionTask(NULL);
 
-	int xchips = m_mpxCfg["xchips"];
-	int ychips = m_mpxCfg["ychips"];
-	int nchips = m_mpxCfg["nchips"];
+	int xchips = m_xchips;
+	int ychips = m_ychips;
+	int nchips = m_nchips;
 	int xgap, ygap;
 	MaxipixReconstruction::Layout layout;
 
@@ -467,16 +479,15 @@ void Camera::setReconstructionActive(bool active) {
 		ychips = 1;
 		xgap = ygap = 0;
 	} else {
-		xgap = m_mpxCfg["xgap"];
-		ygap = m_mpxCfg["ygap"];
-		layout = static_cast<MaxipixReconstruction::Layout>(m_mpxCfg["layout"]);
+		xgap = m_xgap;
+		ygap = m_ygap;
+		layout = m_layout;
 	}
 	setChipsLayout(layout);
-	setVersion(static_cast<Version>(m_mpxCfg["version"]));
+	setVersion(m_version);
 	setNbChip(xchips, ychips);
 	setPixelGap(xgap, ygap);
 	setChipsPosition(m_positions);
-
 
 	// must be called even if reconstruction is inactive or NONE,
 	// this updates the image size
@@ -490,7 +501,7 @@ void Camera::setReconstructionActive(bool active) {
 		DEB_TRACE() << "Image reconstruction is switched ON, model:" << d_model;
 //		m_hwInt.setReconstructionTask(m_reconstruct);
 	} else {
-    // no reconstruction, tell the user why
+		// no reconstruction, tell the user why
 		if (active && m_reconstruct != NULL) {
 			DEB_TRACE() << "Image reconstruction is switched OFF (active=true, config=off), model: " << d_model;
 		} else {
@@ -501,8 +512,7 @@ void Camera::setReconstructionActive(bool active) {
 
 void Camera::loadChipConfig(const std::string& name) {
 	DEB_MEMBER_FUNCT();
-	int nchips = m_mpxCfg["nchips"];
-	m_chipCfg = new MpxPixelConfig(static_cast<Maxipix::Version>(m_mpxCfg["version"]), nchips);
+	m_chipCfg = new MpxPixelConfig(m_version, m_nchips);
 	m_chipCfg->setPath(m_cfgPath);
 	m_chipCfg->loadConfig(name);
 	applyPixelConfig(0);
@@ -511,42 +521,42 @@ void Camera::loadChipConfig(const std::string& name) {
 void Camera::applyPixelConfig(int chipid) {
 	DEB_MEMBER_FUNCT();
 	std::string scfg;
-	if (chipid==0) {
-	    for (int idx=0; idx<m_mpxCfg["nchips"]; idx++) {
-	        m_chipCfg->getMpxString(idx+1, scfg);
-	        DEB_TRACE() << "Loading Chip Config #" << (idx+1) << " ...";
-	        m_priamAcq.setChipCfg(m_priamPorts[idx], scfg);
-	    }
+	if (chipid == 0) {
+		for (int idx = 0; idx < m_nchips; idx++) {
+			m_chipCfg->getMpxString(idx + 1, scfg);
+			DEB_TRACE() << "Loading Chip Config #" << (idx + 1) << " ...";
+			m_priamAcq.setChipCfg(m_priamPorts[idx], scfg);
+		}
 	} else {
-	    short port = getPriamPort(chipid);
-	    m_chipCfg->getMpxString(chipid, scfg);
-	    DEB_TRACE() << "Loading Chip Config #" << (chipid) << " ...";
-	    m_priamAcq.setChipCfg(port, scfg);
+		short port = getPriamPort(chipid);
+		m_chipCfg->getMpxString(chipid, scfg);
+		DEB_TRACE() << "Loading Chip Config #" << (chipid) << " ...";
+		m_priamAcq.setChipCfg(port, scfg);
 
-       // After chip(s) configuration a chip pixel value is needed and
-       // can only be done by reading the chips, this can be done with
-       // a dummy acquisition
-        DEB_TRACE() << "Resetting chip(s) pixels ...";
-        double exptime, settime;
-        int nbframes;
-        m_priamAcq.getExposureTime(exptime);
-        m_priamAcq.getNbFrames(nbframes);
-        if (nbframes == 0) {
-        	nbframes=1;
-        }
-        m_priamAcq.setExposureTime(0.01, settime);
-        m_priamAcq.setNbFrames(1);
-        m_priamAcq.startAcq();
-        sleep(100);
-        DetStatus status;
-        m_priamAcq.getStatus(status);
-        if (status != DetIdle) {
-            m_priamAcq.stopAcq();
-            THROW_HW_ERROR(Error) << "Cannot reset chip(s) after config.";
-        }
-        m_priamAcq.stopAcq();
-        m_priamAcq.setExposureTime(exptime, settime);
-        m_priamAcq.setNbFrames(nbframes);
+		// After chip(s) configuration a chip pixel value is needed and
+		// can only be done by reading the chips, this can be done with
+		// a dummy acquisition
+		DEB_TRACE() << "Resetting chip(s) pixels ...";
+		double exptime, settime;
+		int nbframes;
+		m_priamAcq.getExposureTime(exptime);
+		m_priamAcq.getNbFrames(nbframes);
+		if (nbframes == 0) {
+			nbframes = 1;
+		}
+		m_priamAcq.setExposureTime(0.01, settime);
+		m_priamAcq.setNbFrames(1);
+		m_priamAcq.startAcq();
+		sleep(100);
+		DetStatus status;
+		m_priamAcq.getStatus(status);
+		if (status != DetIdle) {
+			m_priamAcq.stopAcq();
+			THROW_HW_ERROR(Error) << "Cannot reset chip(s) after config.";
+		}
+		m_priamAcq.stopAcq();
+		m_priamAcq.setExposureTime(exptime, settime);
+		m_priamAcq.setNbFrames(nbframes);
 	}
 }
 
@@ -556,41 +566,38 @@ void Camera::acqLoadConfig(const std::string& name, bool reconstruction) {
 //		hwInterface.setConfigFlag(true);
 		loadDetConfig(name, reconstruction);
 		loadChipConfig(name);
-        // Need to inform afterward the hwInterface about new ranges
-        // which are calculated once the configs have been loaded.
-        // By callback the CtAcquisition will be refreshed too.
+		// Need to inform afterward the hwInterface about new ranges
+		// which are calculated once the configs have been loaded.
+		// By callback the CtAcquisition will be refreshed too.
 //        hwInterface.updateValidRanges();
 //        hwInterface.setConfigFlag(false);
-        DEB_TRACE() << "End of configuration, Maxipix is Ok !";
-	} catch(Exception & e) {
-    }
+		DEB_TRACE() << "End of configuration, Maxipix is Ok !";
+	} catch (Exception & e) {
+	}
 }
 
 int Camera::getPriamPort(int chipid) {
 	DEB_MEMBER_FUNCT();
-	if (chipid <= 0 || chipid > m_mpxCfg["nchips"]) {
-    	THROW_HW_ERROR(Error) << "<" << chipid << "> is not a valid chipID";
+	if (chipid <= 0 || chipid > m_nchips) {
+		THROW_HW_ERROR(Error) << "<" << chipid << "> is not a valid chipID";
 	}
-	return m_priamPorts[chipid-1];
+	return m_priamPorts[chipid - 1];
 }
 
 /*******************************************************************
  * \brief AcqEndCallback constructor
  *******************************************************************/
 
-Camera::AcqEndCallback::AcqEndCallback(Camera& cam)
-	: m_cam(cam)
-{
+Camera::AcqEndCallback::AcqEndCallback(Camera& cam) :
+		m_cam(cam) {
 	DEB_CONSTRUCTOR();
 }
 
-Camera::AcqEndCallback::~AcqEndCallback()
-{
+Camera::AcqEndCallback::~AcqEndCallback() {
 	DEB_DESTRUCTOR();
 }
 
-void Camera::AcqEndCallback::acqFinished(const HwFrameInfoType& /*finfo*/)
-{
+void Camera::AcqEndCallback::acqFinished(const HwFrameInfoType& /*finfo*/) {
 	DEB_MEMBER_FUNCT();
 	m_cam.stopAcq();
 }

@@ -32,9 +32,7 @@ namespace Maxipix {
 class PixelConfigArray {
 public:
 
-	PixelConfigArray(Version& version);
-	~PixelConfigArray();
-
+	PixelConfigArray(Version version);
 	void convert(std::string&);
 
 	unsigned char* maskArray;
@@ -58,13 +56,10 @@ private:
 
 class PixelDataArray {
 public:
-	PixelDataArray(Version& version);
-	~PixelDataArray();
 
-	void convert(std::string, unsigned short*);
+  PixelDataArray();
+	void convert(const std::string&, unsigned short*);
 
-private:
-	Version& m_version;
 };
 
 }
