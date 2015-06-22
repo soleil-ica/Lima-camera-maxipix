@@ -171,7 +171,7 @@ class Interface : HwInterface
 	virtual void stopAcq();
 	virtual void getStatus(HwInterface::StatusType& status /Out/);
 	virtual int getNbHwAcquiredFrames();
-	void updateValidRanges();	
+//	void updateValidRanges();	
 	void setConfigFlag(bool flag);
  	void setReconstructionTask(LinkTask*);
 };

@@ -200,7 +200,7 @@ public:
 	virtual void stopAcq();
 	virtual void getStatus(StatusType& status);
 	virtual int getNbHwAcquiredFrames();
-	void updateValidRanges();
+	//	void updateValidRanges();
 	void setConfigFlag(bool flag);
 
 	void setReconstructionTask(LinkTask*);

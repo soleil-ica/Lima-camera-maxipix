@@ -23,18 +23,19 @@ int main()
       Interface *m_interface;
       CtControl* m_control;
 
-      DebParams::setModuleFlags(DebParams::AllFlags);
-      DebParams::setTypeFlags(DebParams::AllFlags);
-      DebParams::setFormatFlags(DebParams::AllFlags);
+      //      DebParams::setModuleFlags(DebParams::AllFlags);
+      //      DebParams::setTypeFlags(DebParams::AllFlags);
+      //      DebParams::setFormatFlags(DebParams::AllFlags);
 
       string p= "/users/blissadm/local/maxipix/tpxatl25/";
       string u = "tpxatl25";
 
-      m_camera = new Camera(0,p,u, true);
+      m_camera = new Camera(0, p, u, true);
       m_interface = new Interface(*m_camera);
       m_control = new CtControl(m_interface);
 
-      // next 3 lines here only for debugging
+      // next 4 lines here only for debugging
+      //m_camera->setExpTime(2.0);
       CtAcquisition* m_ct_acq = m_control->acquisition();
       CtImage* m_ct_image = m_control->image();
       m_ct_acq->setAcqExpoTime(2.0);

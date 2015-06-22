@@ -66,28 +66,43 @@ MpxPixelConfig::MpxPixelConfig(Version version, int nchip) {
 }
 
 MpxPixelConfig::~MpxPixelConfig() {
+	DEB_DESTRUCTOR();
+	for (int idx = 0; idx < m_nchip; idx++) {
+		delete[] m_pixelArray[idx];
+	}
 }
 
 void MpxPixelConfig::reset() {
 	DEB_MEMBER_FUNCT();
-	m_array.clear();
-	std::string blank = "";
+	if (!m_pixelArray.empty()) {
+	  for (int idx = 0; idx < m_nchip; idx++) {
+		delete [] m_pixelArray[idx];
+	  }
+	  m_pixelArray.clear();
+	}
+
+
+	std::string blankName = "";
+
+	// should use unique_ptr here!!!!!!!!!!!!!!!!
 	for (int idx = 0; idx < m_nchip; idx++) {
-	  	  MpxPixelArray mpa = MpxPixelArray(m_version, blank);
-	  	  m_array.push_back(mpa);
+		MpxPixelArray* mpa = new MpxPixelArray(m_version, blankName);
+		m_pixelArray.push_back(mpa);
 	}
 	m_name = "";
 }
 
 void MpxPixelConfig::setPath(const std::string& path) {
 	DEB_MEMBER_FUNCT();
-	m_path = checkPath(path);
+	if (checkPath(path)) {
+	  m_path = path;
+	}
 }
 
 void MpxPixelConfig::loadConfig(const std::string& name) {
 	DEB_MEMBER_FUNCT();
 	for (int idx = 0; idx < m_nchip; idx++) {
-		m_array[idx].load(getConfigFile(name, idx + 1));
+		m_pixelArray[idx]->load(getConfigFile(name, idx + 1));
 	}
 }
 
@@ -96,7 +111,7 @@ void MpxPixelConfig::getMpxString(int chipid, std::string& mpxString) {
 	if (chipid < 1 || chipid > m_nchip) {
 		THROW_HW_ERROR(Error) << "Invalid chipid <" << chipid << ">. Range is [1," << m_nchip << "]";
 	}
-	m_array[chipid - 1].getMpxString(mpxString);
+	m_pixelArray[chipid - 1]->getMpxString(mpxString);
 }
 
 void MpxPixelConfig::getChipArray(int chipid, MpxPixelArray& pixelArray) {
@@ -104,13 +119,13 @@ void MpxPixelConfig::getChipArray(int chipid, MpxPixelArray& pixelArray) {
 	if (chipid < 1 || chipid > m_nchip) {
 		THROW_HW_ERROR(Error) << "Invalid chipid <" << chipid << ">. Range is [1," << m_nchip << "]";
 	}
-	pixelArray = m_array[chipid - 1];
+	pixelArray = *m_pixelArray[chipid - 1];
 }
 
 void MpxPixelConfig::setTimePixMode(TimePixMode mode) {
 	DEB_MEMBER_FUNCT();
 	for (int idx = 0; idx < m_nchip; idx++) {
-		m_array[idx].setTimePixMode(mode);
+		m_pixelArray[idx]->setTimePixMode(mode);
 	}
 }
 
@@ -119,7 +134,7 @@ void MpxPixelConfig::getTimePixMode(TimePixMode& mode) {
 	std::vector<TimePixMode> modes;
 	for (int idx = 0; idx < m_nchip; idx++) {
 		TimePixMode tpmode;
-		m_array[idx].getTimePixMode(tpmode);
+		m_pixelArray[idx]->getTimePixMode(tpmode);
 		modes.push_back(tpmode);
 	}
 	mode = modes[0];
@@ -137,28 +152,28 @@ void MpxPixelConfig::getTimePixMode(TimePixMode& mode) {
 void MpxPixelConfig::setLow2Max(int chipid) {
 	DEB_MEMBER_FUNCT();
 	for (int idx = 0; idx < m_nchip; idx++) {
-		m_array[idx].setLow2Max();
+		m_pixelArray[idx]->setLow2Max();
 	}
 }
 
 void MpxPixelConfig::setLow2Min(int chipid) {
 	DEB_MEMBER_FUNCT();
 	for (int idx = 0; idx < m_nchip; idx++) {
-		m_array[idx].setLow2Min();
+		m_pixelArray[idx]->setLow2Min();
 	}
 }
 
 void MpxPixelConfig::setHigh2Max(int chipid) {
 	DEB_MEMBER_FUNCT();
 	for (int idx = 0; idx < m_nchip; idx++) {
-		m_array[idx].setHigh2Max();
+		m_pixelArray[idx]->setHigh2Max();
 	}
 }
 
 void MpxPixelConfig::setHigh2Min(int chipid) {
 	DEB_MEMBER_FUNCT();
 	for (int idx = 0; idx < m_nchip; idx++) {
-		m_array[idx].setHigh2Min();
+		m_pixelArray[idx]->setHigh2Min();
 	}
 }
 
@@ -187,6 +202,7 @@ std::string MpxPixelConfig::getConfigFile(const std::string& name, int chip) {
  *          format depending on file extension
  */
 MpxPixelArray::MpxPixelArray(Version& version, std::string& filename) {
+	DEB_CONSTRUCTOR();
 	m_version = version;
 	int idx = static_cast<int>(version);
 	for (int i=0; i<DEFLEN; i++) {
@@ -203,6 +219,7 @@ MpxPixelArray::MpxPixelArray(Version& version, std::string& filename) {
 	}
 }
 MpxPixelArray::~MpxPixelArray() {
+	DEB_DESTRUCTOR();
 	for (int idx = 0; idx < DEFLEN; idx++) {
 		delete[] m_arrays[idx];
 	}
@@ -304,19 +321,21 @@ void MpxPixelArray::loadBpc(const std::string& filename) {
 	for (int i = 0; i < size; i++) {
 		dataout[i] = (data[i] >> shift[MASK]) & m_arrayMask[MASK];
 	}
-	setMaskArray(data);
+	setMaskArray(dataout);
 	for (int i = 0; i < size; i++) {
 		dataout[i] = (data[i] >> shift[TEST]) & m_arrayMask[TEST];
 	}
-	setTestArray(data);
+	setTestArray(dataout);
 	for (int i = 0; i < size; i++) {
 		dataout[i] = (data[i] >> shift[HIGH]) & m_arrayMask[HIGH];
 	}
-	setHighArray(data);
+	setHighArray(dataout);
 	for (int i = 0; i < size; i++) {
 		dataout[i] = data[i] & m_arrayMask[LOW];
 	}
-	setLowArray(data);
+	setLowArray(dataout);
+	delete[] data;
+	delete[] dataout;
 }
 
 /**

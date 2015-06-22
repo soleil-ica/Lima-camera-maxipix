@@ -421,6 +421,7 @@ void Camera::loadDetConfig(const std::string& name, bool reconstruction) {
 	detConfig.getDacs(m_mpxDacs);
 	detConfig.getPositionList(m_positions);
 	detConfig.getAsicType(m_version);
+	detConfig.getNChips(m_nchips);
 	detConfig.getXGap(m_xgap);
 	detConfig.getYGap(m_ygap);
 	detConfig.getXChips(m_xchips);

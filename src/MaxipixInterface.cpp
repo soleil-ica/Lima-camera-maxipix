@@ -342,7 +342,7 @@ void ShutterCtrlObj::getCloseTime(double& shut_close_time) const {
  *******************************************************************/
 ReconstructionCtrlObj::ReconstructionCtrlObj() :
 		m_reconstruct_task(NULL) {
-	DEB_MEMBER_FUNCT();
+	DEB_CONSTRUCTOR();
 }
 
 ReconstructionCtrlObj::~ReconstructionCtrlObj() {
@@ -428,15 +428,15 @@ int Interface::getNbHwAcquiredFrames() {
 	return m_cam.getNbHwAcquiredFrames();
 }
 
-void Interface::updateValidRanges() {
-	// Call here the HwSyncObj validRangesChanged() method about the
-	// change on ranges, then the CtAcquisition callback will be activated
-	// in order to update the new ranges.
-	HwSyncCtrlObj::ValidRangesType validRanges;
-
-	m_sync.getValidRanges(validRanges);
-	m_sync.validRangesChanged(validRanges);
-}
+//void Interface::updateValidRanges() {
+//	// Call here the HwSyncObj validRangesChanged() method about the
+//	// change on ranges, then the CtAcquisition callback will be activated
+//	// in order to update the new ranges.
+//	HwSyncCtrlObj::ValidRangesType validRanges;
+//
+//	m_sync.getValidRanges(validRanges);
+//	m_sync.validRangesChanged(validRanges);
+//}
 
 void Interface::getStatus(StatusType& status) {
 	DEB_MEMBER_FUNCT();

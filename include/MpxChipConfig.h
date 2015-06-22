@@ -62,7 +62,7 @@ private:
 	int m_nchip;
 	std::string m_path;
 	std::string m_name;
-	std::vector<MpxPixelArray> m_array;
+	std::vector<MpxPixelArray*> m_pixelArray;
 
 	std::string getConfigFile(const std::string& name, int chip);
 };
