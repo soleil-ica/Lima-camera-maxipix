@@ -114,12 +114,12 @@ void MpxPixelConfig::getMpxString(int chipid, std::string& mpxString) {
 	m_pixelArray[chipid - 1]->getMpxString(mpxString);
 }
 
-void MpxPixelConfig::getChipArray(int chipid, MpxPixelArray& pixelArray) {
+void MpxPixelConfig::getChipArray(int chipid, MpxPixelArray*& pixelArray) {
 	DEB_MEMBER_FUNCT();
 	if (chipid < 1 || chipid > m_nchip) {
 		THROW_HW_ERROR(Error) << "Invalid chipid <" << chipid << ">. Range is [1," << m_nchip << "]";
 	}
-	pixelArray = *m_pixelArray[chipid - 1];
+	pixelArray = m_pixelArray[chipid - 1];
 }
 
 void MpxPixelConfig::setTimePixMode(TimePixMode mode) {

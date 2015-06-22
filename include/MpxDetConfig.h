@@ -70,6 +70,9 @@ public:
 	void getLayout(MaxipixReconstruction::Layout& layout) { layout = m_layout; }
 
 private:
+	MpxDetConfig(const MpxDetConfig&);
+	MpxDetConfig& operator=(const MpxDetConfig&);
+
 	std::string m_path;
 	std::string m_name;
 	std::string m_cfgFile;

@@ -50,7 +50,7 @@ public:
 	void setPath(const std::string& path);
 	void loadConfig(const std::string& name);
 	void getMpxString(int chipid, std::string& mpxString);
-	void getChipArray(int chipid, MpxPixelArray& pixelArray);
+	void getChipArray(int chipid, MpxPixelArray*& pixelArray);
 	void setTimePixMode(TimePixMode mode);
 	void getTimePixMode(TimePixMode& mode);
 	void setLow2Max(int chipid);
@@ -58,6 +58,9 @@ public:
 	void setHigh2Max(int chipid);
 	void setHigh2Min(int chipid);
 private:
+        MpxPixelConfig(const MpxPixelConfig& ctrl);
+        MpxPixelConfig& operator=(const MpxPixelConfig& ctrl);
+
 	Version m_version;
 	int m_nchip;
 	std::string m_path;
@@ -92,6 +95,9 @@ public:
 	void setHigh2Min();
 
 private:
+        MpxPixelArray(const MpxPixelArray& ctrl);
+        MpxPixelArray& operator=(const MpxPixelArray& ctrl);
+
 	Version m_version;
 	uint8_t* m_arrays[4];
 	std::string m_filename;

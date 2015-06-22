@@ -120,6 +120,9 @@ protected:
 	virtual void setMaxImageSizeCallbackActive(bool cb_active);
 
 private:
+	Camera(const Camera&);
+	Camera& operator=(const Camera&);
+
 	class AcqEndCallback: public Espia::AcqEndCallback {
 	DEB_CLASS_NAMESPC(DebModCamera, "Camera::AcqEndCallback",
 			"Maxipix");

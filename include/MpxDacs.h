@@ -76,6 +76,9 @@ public:
 	void getFsrString(std::string&);
 
 private:
+	MpxChipDacs(const MpxChipDacs&);
+	MpxChipDacs& operator=(const MpxChipDacs&);
+
 	Version m_version;
 	std::map<std::string,int> m_data;
 
@@ -108,6 +111,9 @@ public:
 	void getDacs(int chipid, std::map<std::string,int>& dacs);
 
 private:
+	MpxDacs(const MpxDacs&);
+	MpxDacs& operator=(const MpxDacs&);
+
 	Version& m_version;
 	int m_nchip;
 	PriamAcq* m_pacq;
@@ -116,7 +122,7 @@ private:
 	double m_energyCalib;
 	std::map<int,int> m_thlNoise;
 	std::map<int,int> m_thlXray;
-	std::vector<MpxChipDacs> m_chipDacs;
+	std::vector<MpxChipDacs*> m_chipDacs;
 
 	std::pair<int,int> getChipIdx(int chipid);
 };

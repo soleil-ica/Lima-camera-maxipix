@@ -680,11 +680,14 @@ MpxDacs::MpxDacs(Version version, int nchip) :
 	m_priamPorts = NULL;
 	m_thlNoise = std::map<int, int>();
 	m_thlXray = std::map<int, int>();
-	m_chipDacs = std::vector<MpxChipDacs>();
+	m_chipDacs = std::vector<MpxChipDacs*>();
 	reset();
 }
 
 MpxDacs::~MpxDacs() {
+	for (int idx = 0; idx < m_nchip; idx++) {
+	  delete [] m_chipDacs[idx];
+	}
 }
 
 void MpxDacs::reset() {
@@ -696,7 +699,7 @@ void MpxDacs::reset() {
 	m_lastEnergy = 0;
 
 	for (int idx = 0; idx < m_nchip; idx++) {
-		m_chipDacs.push_back(MpxChipDacs(m_version));
+		m_chipDacs.push_back(new MpxChipDacs(m_version));
 		m_thlNoise[idx] = 0;
 		m_thlXray[idx] = 0;
 	}
@@ -735,7 +738,7 @@ void MpxDacs::applyChipDacs(int chipid) {
 void MpxDacs::getFsrString(int chipid, std::string& fsrString) {
 	DEB_MEMBER_FUNCT();
 	std::pair<int, int> p = getChipIdx(chipid);
-	m_chipDacs[p.first].getFsrString(fsrString);
+	m_chipDacs[p.first]->getFsrString(fsrString);
 }
 
 void MpxDacs::setThlNoise(std::map<int, int>& values) {
@@ -773,7 +776,7 @@ void MpxDacs::setEnergy(double energy) {
 	for (int idx = 0; idx < m_nchip; idx++) {
 		double val = m_thlNoise[idx] + ((m_thlXray[idx] - m_thlNoise[idx]) * energy / m_energyCalib);
 		std::string name = "thl";
-		m_chipDacs[idx].setOneDac(name, int(val));
+		m_chipDacs[idx]->setOneDac(name, int(val));
 		DEB_TRACE() << " thl #" << idx << " = " << val;
 	}
 	m_lastEnergy = energy;
@@ -788,7 +791,7 @@ void MpxDacs::setOneDac(int chipid, std::string name, int value) {
 	DEB_MEMBER_FUNCT();
 	std::pair<int, int> p = getChipIdx(chipid);
 	for (int idx = p.first; idx < p.second; idx++) {
-		m_chipDacs[idx].setOneDac(name, value);
+		m_chipDacs[idx]->setOneDac(name, value);
 	}
 }
 
@@ -796,7 +799,7 @@ void MpxDacs::setDacs(int chipid, std::map<std::string, int>& dacs) {
 	DEB_MEMBER_FUNCT();
 	std::pair<int, int> p = getChipIdx(chipid);
 	for (int idx = p.first; idx < p.second; idx++) {
-		m_chipDacs[idx].setDacs(dacs);
+		m_chipDacs[idx]->setDacs(dacs);
 	}
 }
 
@@ -805,7 +808,7 @@ void MpxDacs::getOneDac(int chipid, std::string name, int& value) {
 	std::vector<int> dacs;
 	std::pair<int, int> p = getChipIdx(chipid);
 	for (int idx = p.first; idx < p.second; idx++) {
-		dacs.push_back(m_chipDacs[idx].getOneDac(name));
+		dacs.push_back(m_chipDacs[idx]->getOneDac(name));
 	}
 	int res = dacs[0];
 	value = -1;
@@ -827,7 +830,7 @@ void MpxDacs::getDacs(int chipid, std::map<std::string, int>& res) {
 	std::vector<std::map<std::string, int> > dacs;
 	for (int idx = p.first; idx < p.second; idx++) {
 		std::map<std::string, int> chipDac;
-		m_chipDacs[idx].getDacs(chipDac);
+		m_chipDacs[idx]->getDacs(chipDac);
 		dacs.push_back(chipDac);
 	}
 	res = dacs[0];

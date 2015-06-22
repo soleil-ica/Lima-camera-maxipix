@@ -410,7 +410,7 @@ void Camera::loadDetConfig(const std::string& name, bool reconstruction) {
 	float frequency;
 	Polarity polarity;
 
-	MpxDetConfig detConfig = MpxDetConfig();
+	MpxDetConfig detConfig;
 	detConfig.setPath(m_cfgPath);
 	DEB_TRACE() << "Loading Detector Config <" << name << "> ...";
 	detConfig.loadConfig(name);
@@ -428,7 +428,6 @@ void Camera::loadDetConfig(const std::string& name, bool reconstruction) {
 	detConfig.getYChips(m_ychips);
 	detConfig.getLayout(m_layout);
 	m_mpxDacs->setPriamPars(&m_priamAcq, &m_priamPorts);
-	DEB_TRACE() << "++++++++++++++++++++++++++++++++++++++++++++++++++";
 	DEB_TRACE() << DEB_VAR1(m_layout);
 
 	DEB_TRACE() << "Setting PRIAM configuration ...";

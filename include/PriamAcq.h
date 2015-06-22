@@ -181,6 +181,10 @@ class PriamAcq {
     void resetAllChip();
 
   private:
+
+    //PriamAcq(const PriamAcq& ctrl);
+    //PriamAcq& operator=(const PriamAcq& ctrl);
+
     void _readBoardID();
     void _timeAdjust();
     void _timeToReg(double,double&,std::string&,std::string&);

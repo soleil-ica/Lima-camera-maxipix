@@ -23,9 +23,9 @@ int main()
       Interface *m_interface;
       CtControl* m_control;
 
-      //      DebParams::setModuleFlags(DebParams::AllFlags);
-      //      DebParams::setTypeFlags(DebParams::AllFlags);
-      //      DebParams::setFormatFlags(DebParams::AllFlags);
+      DebParams::setModuleFlags(DebParams::AllFlags);
+      DebParams::setTypeFlags(DebParams::AllFlags);
+      DebParams::setFormatFlags(DebParams::AllFlags);
 
       string p= "/users/blissadm/local/maxipix/tpxatl25/";
       string u = "tpxatl25";
