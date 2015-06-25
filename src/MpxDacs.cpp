@@ -50,8 +50,6 @@ MpxFsrDef::MpxFsrDef(Version version) {
 	}
 }
 
-//MpxFsrDef::~MpxFsrDef(){}
-
 std::vector<std::string>  MpxFsrDef::listKeys(bool saved) {
 	DEB_MEMBER_FUNCT();
 	std::vector<std::string> keys;
@@ -822,8 +820,6 @@ void MpxDacs::getOneDac(int chipid, std::string name, int& value) {
 	value = dacs[0];
 }
 
-// Laurent to check this carefully!!!!!!!!!!
-//
 void MpxDacs::getDacs(int chipid, std::map<std::string, int>& res) {
 	DEB_MEMBER_FUNCT();
 	std::pair<int, int> p = getChipIdx(chipid);

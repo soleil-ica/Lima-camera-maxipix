@@ -45,14 +45,15 @@ Camera::Camera(int espia_dev_nb, const std::string& config_path,
 		m_type(Bpp16),
 		m_version(MXR2),
 		m_mis_cb_act(false),
-		m_no_reconstruction(reconstruction),
+		m_reconstruction(reconstruction),
 		m_layout(MaxipixReconstruction::L_NONE),
 		m_acq_end_cb(*this),
 		m_cfgPath(config_path),
-		m_bufferCtrlObj() {
+		m_bufferCtrlMgr(m_ebuf),
+		m_bufferCtrlObj(m_bufferCtrlMgr) {
 
 	DEB_CONSTRUCTOR();
-	m_reconstruct = NULL;
+	m_reconstructionTask = NULL;
 	m_reconstructType = MaxipixReconstruction::RAW;
 	m_mpxDacs = NULL;
 	m_chipCfg = NULL;
@@ -86,8 +87,7 @@ void Camera::prepareAcq() {
 void Camera::startAcq() {
 	DEB_MEMBER_FUNCT();
 	if (m_prepare_flag || m_acqMode == Accumulation) {
-		StdBufferCbMgr& buffer_mgr = m_bufferCtrlObj.getBuffer();
-		buffer_mgr.setStartTimestamp(Timestamp::now());
+		m_bufferCtrlMgr.setStartTimestamp(Timestamp::now());
 		m_espiaAcq.start();
 		m_prepare_flag = false;
 	}
@@ -187,10 +187,8 @@ void Camera::getValidRanges(HwSyncCtrlObj::ValidRangesType& valid_ranges) {
 	m_priamAcq.getIntervalTimeRange(tmin, tmax);
 	valid_ranges.min_lat_time = tmin;
 	valid_ranges.max_lat_time = tmax;
-	DEB_RETURN()
-			<< DEB_VAR2(valid_ranges.min_exp_time, valid_ranges.max_exp_time);
-	DEB_RETURN()
-			<< DEB_VAR2(valid_ranges.min_lat_time, valid_ranges.max_lat_time);
+	DEB_RETURN() << DEB_VAR2(valid_ranges.min_exp_time, valid_ranges.max_exp_time);
+	DEB_RETURN() << DEB_VAR2(valid_ranges.min_lat_time, valid_ranges.max_lat_time);
 }
 
 void Camera::getImageSize(Size& size) {
@@ -219,7 +217,7 @@ void Camera::getDetectorModel(std::string& type) {
 	DEB_MEMBER_FUNCT();
 	std::stringstream ss;
 
-	DEB_TRACE() << "&&&&&&&&&&&&&&&&&" << DEB_VAR1(m_layout);
+	DEB_TRACE() << DEB_VAR1(m_layout);
 
 	switch (m_layout) {
 	case MaxipixReconstruction::L_NONE:
@@ -227,8 +225,7 @@ void Camera::getDetectorModel(std::string& type) {
 		break;
 	case MaxipixReconstruction::L_2x2:
 	case MaxipixReconstruction::L_5x1:
-		ss << m_xchips << "x" << m_ychips << "(gap:" << m_xgap << "x" << m_ygap
-				<< ")-";
+		ss << m_xchips << "x" << m_ychips << "(gap:" << m_xgap << "x" << m_ygap << ")-";
 		break;
 	case MaxipixReconstruction::L_FREE:
 		ss << m_nchips << "x" << 1 << " chip(s) with rotation (FREE layout)-";
@@ -306,7 +303,7 @@ void Camera::init() {
 	m_espiaAcq.registerAcqEndCallback(m_acq_end_cb);
 	setNbChip(1, 1);
 	if (!m_cfgPath.empty() && !m_cfgName.empty()) {
-		loadConfig(m_cfgName, m_no_reconstruction);
+		loadConfig(m_cfgName, m_reconstruction);
 	}
 }
 void Camera::setPath(const std::string& path) {
@@ -388,12 +385,12 @@ void Camera::getFillMode(MaxipixReconstruction::Type& reconstructType) const {
 
 void Camera::setFillMode(MaxipixReconstruction::Type fillMode) {
 	DEB_MEMBER_FUNCT();
-	if (m_reconstruct) {
+	if (m_reconstructionTask) {
 		if (convert_2_string(fillMode) == "Unknown") {
 			THROW_HW_ERROR(Error) << "invalid reconstruction fill mode " << fillMode;
 		} else {
 			m_reconstructType = fillMode;
-			m_reconstruct->setType(fillMode);
+			m_reconstructionTask->setType(fillMode);
 		}
 	}
 }
@@ -414,9 +411,7 @@ void Camera::loadDetConfig(const std::string& name, bool reconstruction) {
 	detConfig.setPath(m_cfgPath);
 	DEB_TRACE() << "Loading Detector Config <" << name << "> ...";
 	detConfig.loadConfig(name);
-//	detConfig.getName(m_cfgName);
 	detConfig.getFilename(m_cfgFilename);
-//	detConfig.getMpxCfg(m_mpxCfg);
 	detConfig.getPriamPorts(m_priamPorts);
 	detConfig.getDacs(m_mpxDacs);
 	detConfig.getPositionList(m_positions);
@@ -460,10 +455,9 @@ void Camera::setReconstructionActive(bool active) {
 	DEB_MEMBER_FUNCT();
 	// get the default reconstruction task (object) set from the read config parameters
 	// but first inform the hwInt to no reconstruction
-	if (!m_reconstruct) {
-		delete m_reconstruct;
+	if (!m_reconstructionTask) {
+		delete m_reconstructionTask;
 	}
-//	m_hwInt.setReconstructionTask(NULL);
 
 	int xchips = m_xchips;
 	int ychips = m_ychips;
@@ -491,18 +485,18 @@ void Camera::setReconstructionActive(bool active) {
 
 	// must be called even if reconstruction is inactive or NONE,
 	// this updates the image size
-	m_reconstruct = getReconstructionTask();
+	m_reconstructionTask = getReconstructionTask();
 	std::string d_model;
 	getDetectorModel(d_model);
 
 	// now decide to active or not a reconstruction
 	// accord to either the config file and/or the "active" flag
-	if (active && m_reconstruct != NULL) {
+	if (active && m_reconstructionTask != NULL) {
 		DEB_TRACE() << "Image reconstruction is switched ON, model:" << d_model;
 //		m_hwInt.setReconstructionTask(m_reconstruct);
 	} else {
 		// no reconstruction, tell the user why
-		if (active && m_reconstruct != NULL) {
+		if (active && m_reconstructionTask != NULL) {
 			DEB_TRACE() << "Image reconstruction is switched OFF (active=true, config=off), model: " << d_model;
 		} else {
 			DEB_TRACE() << "Image reconstruction is switched OFF (active=false), model: " << d_model;
@@ -563,14 +557,8 @@ void Camera::applyPixelConfig(int chipid) {
 void Camera::acqLoadConfig(const std::string& name, bool reconstruction) {
 	DEB_MEMBER_FUNCT();
 	try {
-//		hwInterface.setConfigFlag(true);
 		loadDetConfig(name, reconstruction);
 		loadChipConfig(name);
-		// Need to inform afterward the hwInterface about new ranges
-		// which are calculated once the configs have been loaded.
-		// By callback the CtAcquisition will be refreshed too.
-//        hwInterface.updateValidRanges();
-//        hwInterface.setConfigFlag(false);
 		DEB_TRACE() << "End of configuration, Maxipix is Ok !";
 	} catch (Exception & e) {
 	}

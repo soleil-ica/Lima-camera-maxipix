@@ -25,8 +25,9 @@ include ../../common/espia/include/espia.inc
 SRCS = test.cpp  test2.cpp
 
 CXXFLAGS = -I../include \
-		   -I../tools/cpp \
-	        -Wall -pthread -g
+	   -I../tools/cpp \
+	   -Wall -pthread -g
+
 INCLUDES = -I../include \
            -I../tools/src \
            -I../../../common/include \
@@ -34,8 +35,8 @@ INCLUDES = -I../include \
            -I../../../hardware/include \
            -I../../common/espia/include \
            -I$(ESPIA_DRV_INCL) \
-               -I../../../third-party/Processlib/core/include \
-               -I../../../third-party/libconfig/lib
+           -I../../../third-party/Processlib/core/include \
+           -I../../../third-party/libconfig/lib
 
 LDFLAGS = -pthread -L../../../build  -L../../../third-party/Processlib/build -L$(ESPIA_DRV_LIB)
 LDLIBS = -llimacore  -lprocesslib -llimaespia -lespia 
@@ -44,7 +45,7 @@ test-progs = test test2
 
 all: 	$(test-progs)
 
-test:		test.o ../tools/cpp/libINIReader.o
+test:		test.o ../tools/src/libINIReader.o
 	$(CXX) $(LDFLAGS) -o $@ $+ $(LDLIBS)
 
 test2:		test2.o ../src/Maxipix.o

@@ -20,5 +20,6 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 ############################################################################
 src-dirs  = src tools/src
+test-dirs = test
 
 include ../../global.inc

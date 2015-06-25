@@ -616,10 +616,8 @@ void MpxPixelArray::setHighArray(uint8_t* data) {
 void MpxPixelArray::setArray(int index, uint8_t* data) {
 	DEB_MEMBER_FUNCT();
 	long size = ChipSize.getWidth() * ChipSize.getHeight();
-//	uint8_t* bptr = m_arrays[index];
-//	uint8_t* bptr2 = m_arrayMask[index];
 	for (int idx = 0; idx < size; idx++) {
-		m_arrays[index][idx] |= (data[idx]); // & bptr2[idx]);
+		m_arrays[index][idx] |= (data[idx]);
 	}
 }
 

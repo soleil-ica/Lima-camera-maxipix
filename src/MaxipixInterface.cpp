@@ -341,14 +341,14 @@ void ShutterCtrlObj::getCloseTime(double& shut_close_time) const {
  * \brief ReconstructionCtrlObj constructor
  *******************************************************************/
 ReconstructionCtrlObj::ReconstructionCtrlObj() :
-		m_reconstruct_task(NULL) {
+		m_reconstruction_task(NULL) {
 	DEB_CONSTRUCTOR();
 }
 
 ReconstructionCtrlObj::~ReconstructionCtrlObj() {
 	DEB_DESTRUCTOR();
-	if (m_reconstruct_task)
-		m_reconstruct_task->unref();
+	if (m_reconstruction_task)
+		m_reconstruction_task->unref();
 }
 void ReconstructionCtrlObj::setReconstructionTask(LinkTask* task) {
 	DEB_MEMBER_FUNCT();
@@ -356,9 +356,9 @@ void ReconstructionCtrlObj::setReconstructionTask(LinkTask* task) {
 
 	if (task)
 		task->ref();
-	if (m_reconstruct_task)
-		m_reconstruct_task->unref();
-	m_reconstruct_task = task;
+	if (m_reconstruction_task)
+		m_reconstruction_task->unref();
+	m_reconstruction_task = task;
 	reconstructionChange(task);
 }
 
@@ -367,17 +367,16 @@ void ReconstructionCtrlObj::setReconstructionTask(LinkTask* task) {
  *******************************************************************/
 
 Interface::Interface(Camera& cam) :
-  m_cam(cam), m_det_info(cam), m_bufferCtrlObj(nullptr), m_sync(cam), m_shutter(cam),
-		m_reconstruction(), m_config_flag(false)
+  m_cam(cam), m_det_info(cam), m_sync(cam), m_shutter(cam),
+		m_reconstructionCtrlObj(), m_config_flag(false)
 {
 	DEB_CONSTRUCTOR();
 
 	HwDetInfoCtrlObj *det_info = &m_det_info;
 	m_cap_list.push_back(HwCap(det_info));
 
-	m_bufferCtrlObj = m_cam.getBufferCtrlObj();
 	HwBufferCtrlObj *buffer = m_cam.getBufferCtrlObj();
-	m_cap_list.push_back(buffer);
+	m_cap_list.push_back(HwCap(buffer));
 
 	HwSyncCtrlObj *sync = &m_sync;
 	m_cap_list.push_back(HwCap(sync));
@@ -385,9 +384,11 @@ Interface::Interface(Camera& cam) :
 	HwShutterCtrlObj *shutter = &m_shutter;
 	m_cap_list.push_back(HwCap(shutter));
 
-	HwReconstructionCtrlObj *reconstruction = &m_reconstruction;
+	HwReconstructionCtrlObj *reconstruction = &m_reconstructionCtrlObj;
 	m_cap_list.push_back(HwCap(reconstruction));
 
+	m_reconstructionTask = m_cam.getReconstructionTask();
+	m_reconstructionCtrlObj.setReconstructionTask(m_reconstructionTask);
 	reset(SoftReset);
 }
 
@@ -428,16 +429,6 @@ int Interface::getNbHwAcquiredFrames() {
 	return m_cam.getNbHwAcquiredFrames();
 }
 
-//void Interface::updateValidRanges() {
-//	// Call here the HwSyncObj validRangesChanged() method about the
-//	// change on ranges, then the CtAcquisition callback will be activated
-//	// in order to update the new ranges.
-//	HwSyncCtrlObj::ValidRangesType validRanges;
-//
-//	m_sync.getValidRanges(validRanges);
-//	m_sync.validRangesChanged(validRanges);
-//}
-
 void Interface::getStatus(StatusType& status) {
 	DEB_MEMBER_FUNCT();
 	static const DetStatus det_mask = (DetWaitForTrigger | DetExposure | DetReadout);
@@ -455,9 +446,4 @@ void Interface::getStatus(StatusType& status) {
 
 void Interface::setConfigFlag(bool flag) {
 	m_config_flag = flag;
-}
-
-void Interface::setReconstructionTask(LinkTask* task) {
-	DEB_MEMBER_FUNCT();
-	m_reconstruction.setReconstructionTask(task);
 }

@@ -7,8 +7,6 @@
 #include "MaxipixReconstruction.h"
 #include "MaxipixInterface.h"
 
-
-
 using namespace lima;
 using namespace lima::Maxipix;
 using namespace std;
@@ -27,17 +25,15 @@ int main()
       DebParams::setTypeFlags(DebParams::AllFlags);
       DebParams::setFormatFlags(DebParams::AllFlags);
 
-      string p= "/users/blissadm/local/maxipix/tpxatl25/";
-      string u = "tpxatl25";
+      string path = "/users/blissadm/local/maxipix/tpxatl25/";
+      string filename = "tpxatl25";
 
-      m_camera = new Camera(0, p, u, true);
+      m_camera = new Camera(0, path, filename, true);
       m_interface = new Interface(*m_camera);
       m_control = new CtControl(m_interface);
 
-      // next 4 lines here only for debugging
-      //m_camera->setExpTime(2.0);
+      // next 2 lines here only for debugging
       CtAcquisition* m_ct_acq = m_control->acquisition();
-      CtImage* m_ct_image = m_control->image();
       m_ct_acq->setAcqExpoTime(2.0);
 
       string type;
@@ -51,7 +47,7 @@ int main()
       m_interface->getStatus(status);
       cout << "Detector Status: " << status << endl;
 
-      int nframes = 2;
+      int nframes = 10;
       // setup fileformat and data saving info
       CtSaving* saving = m_control->saving();
       saving->setDirectory("/users/gmant");

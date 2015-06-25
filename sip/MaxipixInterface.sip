@@ -173,7 +173,7 @@ class Interface : HwInterface
 	virtual int getNbHwAcquiredFrames();
 //	void updateValidRanges();	
 	void setConfigFlag(bool flag);
- 	void setReconstructionTask(LinkTask*);
+// 	void setReconstructionTask(LinkTask*);
 };
 
 }; // namespace Maxipix

@@ -62,43 +62,6 @@ private:
 
 
 /*******************************************************************
- * \class BufferCtrlObj
- * \brief Control object providing Maxipix buffering interface
- *******************************************************************/
-
-class BufferCtrlObj: public HwBufferCtrlObj {
-DEB_CLASS_NAMESPC(DebModCamera, "BufferCtrlObj", "Maxipix");
-
-public:
-	BufferCtrlObj(BufferCtrlMgr& buffer_mgr);
-	virtual ~BufferCtrlObj();
-
-	virtual void setFrameDim(const FrameDim& frame_dim);
-	virtual void getFrameDim(FrameDim& frame_dim);
-
-	virtual void setNbBuffers(int nb_buffers);
-	virtual void getNbBuffers(int& nb_buffers);
-
-	virtual void setNbConcatFrames(int nb_concat_frames);
-	virtual void getNbConcatFrames(int& nb_concat_frames);
-
-	virtual void getMaxNbBuffers(int& max_nb_buffers);
-
-	virtual void *getBufferPtr(int buffer_nb, int concat_frame_nb = 0);
-	virtual void *getFramePtr(int acq_frame_nb);
-
-	virtual void getStartTimestamp(Timestamp& start_ts);
-	virtual void getFrameInfo(int acq_frame_nb, HwFrameInfoType& info);
-
-	virtual void registerFrameCallback(HwFrameCallback& frame_cb);
-	virtual void unregisterFrameCallback(HwFrameCallback& frame_cb);
-
-private:
-	BufferCtrlMgr& m_buffer_mgr;
-};
-
-
-/*******************************************************************
  * \class SyncCtrlObj
  * \brief Control object providing Maxipix synchronization interface
  *******************************************************************/
@@ -172,12 +135,12 @@ public:
 	~ReconstructionCtrlObj();
 
 	virtual LinkTask* getReconstructionTask() {
-		return m_reconstruct_task;
+		return m_reconstruction_task;
 	}
 	void setReconstructionTask(LinkTask* task);
 
 private:
-	LinkTask* m_reconstruct_task;
+	LinkTask* m_reconstruction_task;
 };
 
 
@@ -200,18 +163,16 @@ public:
 	virtual void stopAcq();
 	virtual void getStatus(StatusType& status);
 	virtual int getNbHwAcquiredFrames();
-	//	void updateValidRanges();
 	void setConfigFlag(bool flag);
 
-	void setReconstructionTask(LinkTask*);
 private:
 	Camera& m_cam;
 	CapList m_cap_list;
 	DetInfoCtrlObj m_det_info;
-	HwBufferCtrlObj* m_bufferCtrlObj;
 	SyncCtrlObj m_sync;
 	ShutterCtrlObj m_shutter;
-	ReconstructionCtrlObj m_reconstruction;
+	ReconstructionCtrlObj m_reconstructionCtrlObj;
+	LinkTask* m_reconstructionTask;
 	bool m_config_flag;
 };
 

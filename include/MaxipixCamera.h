@@ -36,6 +36,7 @@
 #include "EspiaBufferMgr.h"
 #include "PriamSerial.h"
 #include "PriamAcq.h"
+#include "MaxipixBufferCtrlObj.h"
 #include "MaxipixReconstruction.h"
 #include "MpxDetConfig.h"
 #include "MpxChipConfig.h"
@@ -120,8 +121,6 @@ protected:
 	virtual void setMaxImageSizeCallbackActive(bool cb_active);
 
 private:
-	Camera(const Camera&);
-	Camera& operator=(const Camera&);
 
 	class AcqEndCallback: public Espia::AcqEndCallback {
 	DEB_CLASS_NAMESPC(DebModCamera, "Camera::AcqEndCallback",
@@ -151,7 +150,7 @@ private:
 	ImageType m_type;
 	Version m_version;
 	bool m_mis_cb_act;
-	bool m_no_reconstruction;
+	bool m_reconstruction;
 	MaxipixReconstruction::Layout m_layout;
 	AcqEndCallback m_acq_end_cb;
 	std::string m_cfgPath;
@@ -159,17 +158,17 @@ private:
 	Size m_size;
 	std::string m_cfgFilename;
 	std::vector<int> m_priamPorts;
-//	std::map<std::string, int> m_mpxCfg;
 	bool m_prepare_flag;
 	AcqMode m_acqMode;
 
 	MaxipixReconstruction::PositionList m_positions;
 	MaxipixReconstruction::Type m_reconstructType;
-	MaxipixReconstruction* m_reconstruct;
+	MaxipixReconstruction* m_reconstructionTask;
 
-	// Buffer control object
-	SoftBufferCtrlObj m_bufferCtrlObj;
-//	BufferCtrlMgr m_mbuf;
+	// Buffer management
+	BufferCtrlMgr m_bufferCtrlMgr;
+	BufferCtrlObj m_bufferCtrlObj;
+
 	MpxPixelConfig* m_chipCfg;
 	MpxDacs* m_mpxDacs;
 

@@ -34,7 +34,6 @@ using namespace lima;
 using namespace lima::Maxipix;
 
 MpxDetConfig::MpxDetConfig(std::string path, std::string name) : m_priamPorts(), m_dacs(NULL) {
-//	m_path = NULL;
 	reset();
 	if (!path.empty()) {
 		setPath(path);
@@ -51,9 +50,7 @@ void MpxDetConfig::reset() {
 	DEB_MEMBER_FUNCT();
 	m_name = "";
 	m_cfgFile = "";
-//	m_mpxCfg.clear();
 	m_priamPorts.clear();
-//	m_dacs = NULL;
 }
 
 void MpxDetConfig::setPath(const std::string& path) {
@@ -83,10 +80,6 @@ void MpxDetConfig::getName(std::string& name) const {
 void MpxDetConfig::getFilename(std::string& cfgFile) const {
 	cfgFile = m_cfgFile;
 }
-
-//void MpxDetConfig::getMpxCfg(std::map<std::string, int>& config) const {
-//	config = m_mpxCfg;
-//}
 
 void MpxDetConfig::getPriamPorts(std::vector<int>& ports) const {
 	ports =  m_priamPorts;
@@ -130,7 +123,6 @@ void MpxDetConfig::loadDetectorConfig(std::string& fname) {
 void MpxDetConfig::parseDetModuleSection(INIReader& reader) {
 	DEB_MEMBER_FUNCT();
 	std::string section = "detmodule";
-	//	std::map<std::string, int> m_mpxCfg;
 
 	reader.Get(section, "connection", "Unknown"); // not used
 	reader.Get(section, "sensor", "Unknown"); // not used
@@ -147,24 +139,20 @@ void MpxDetConfig::parseDetModuleSection(INIReader& reader) {
 
 	std::string type = reader.Get(section, "asic", "Unknown");
 	convert_from_string(type, m_asicType); // Checks for validity
-	//	m_mpxCfg["version"] = static_cast<int>(m_asicType);
 	DEB_TRACE() << DEB_VAR2(type, m_asicType);
 
 	std::string polarity = reader.Get(section, "polarity", "Unknown");
 	convert_from_string(polarity, m_polarity); // Checks for validity
-	//	m_mpxCfg["polarity"] = static_cast<int>(m_polarity);
 
 	double value;
 	getMandatoryParam(reader, section, "frequency", value);
 	m_frequency = (float) value;
 
 	getMandatoryParam(reader, section, "nchips", m_nchips);
-	//	m_mpxCfg["nchips"] = m_nchips;
 	DEB_TRACE() << DEB_VAR1(m_nchips);
 
 	// the startup energy
 	getMandatoryParam(reader, section, "energy", m_energy);
-	//	m_mpxCfg["energy"] = m_energy;
 
 	for (int idx = 0; idx < m_nchips; idx++) {
 		std::stringstream name;
@@ -185,12 +173,8 @@ void MpxDetConfig::parseLayoutSection(INIReader& reader) {
 	DEB_MEMBER_FUNCT();
 	std::string section = "layout_standard";
 
-	//	m_mpxCfg["positions"] = 0;
-
-	//	MaxipixReconstruction::Layout layout;
 	std::string layoutStr = reader.Get(section, "layout", "Unknown");
 	convert_from_string(layoutStr, m_layout); // checks for validity
-	//	m_mpxCfg["layout"] = static_cast<int>(layout);
 	DEB_TRACE() << DEB_VAR1(m_layout);
 
 	// layout paramters for standard monolithic maxipix 2x2 or 5x5 with gap reconstruction
@@ -198,15 +182,11 @@ void MpxDetConfig::parseLayoutSection(INIReader& reader) {
 		// xchips, ychips and xgap are mandatory
 		Range<int>range = Range<int>(1,6);
 		getMandatoryParam(reader, section, "xchips", m_xchips, range);
-		//		m_mpxCfg["xchips"] = m_xchips;
 		range = Range<int>(1,2);
 		getMandatoryParam(reader, section, "ychips", m_ychips, range);
-		//		m_mpxCfg["ychips"] = m_ychips;
 		range = Range<int>(1, 5);
 		getMandatoryParam(reader, section, "xgap", m_xgap, range);
-		//		m_mpxCfg["xgap"] = m_xgap;
 		getMandatoryParam(reader, section, "ygap", m_ygap, range);
-		//		m_mpxCfg["ygap"] = m_ygap;
 
 		reader.Get(section, "pos_1", "00"); // not used
 		reader.Get(section, "pos_2", "00"); // not used
@@ -238,7 +218,6 @@ void MpxDetConfig::parseLayoutGeneralSection(INIReader& reader) {
 		int rotation;
 		getMandatoryParam(reader, section, rname.str(), rotation);
 		RotationMode rotationMode = static_cast<RotationMode>(rotation);
-		//		m_mpxCfg[rname.str()] = rotation;
 		position.rotation = rotationMode;
 
 		std::stringstream xname;
@@ -246,13 +225,11 @@ void MpxDetConfig::parseLayoutGeneralSection(INIReader& reader) {
 		int x;
 		Range<int> range = Range<int>(0, 2048);
 		getMandatoryParam(reader, section, xname.str(), x, range);
-		//		m_mpxCfg[xname.str()] = x;
 		((Point) position.origin).x = x;
 		std::stringstream yname;
 		yname << "yc_" << idx;
 		int y;
 		getMandatoryParam(reader, section, yname.str(), y, range);
-		//		m_mpxCfg[yname.str()] = y;
 		((Point) position.origin).y = y;
 
 		m_positions.push_back(position);
