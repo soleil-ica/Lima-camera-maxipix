@@ -26,6 +26,7 @@ SRCS = test.cpp  test2.cpp
 
 CXXFLAGS = -I../include \
 	   -I../tools/cpp \
+           -DWITH_SPS_IMAGE -DWITH_CONFIG \
 	   -Wall -pthread -g
 
 INCLUDES = -I../include \
