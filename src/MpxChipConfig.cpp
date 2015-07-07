@@ -68,7 +68,7 @@ MpxPixelConfig::MpxPixelConfig(Version version, int nchip) {
 MpxPixelConfig::~MpxPixelConfig() {
 	DEB_DESTRUCTOR();
 	for (int idx = 0; idx < m_nchip; idx++) {
-		delete[] m_pixelArray[idx];
+		delete m_pixelArray[idx];
 	}
 }
 

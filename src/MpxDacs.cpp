@@ -684,7 +684,7 @@ MpxDacs::MpxDacs(Version version, int nchip) :
 
 MpxDacs::~MpxDacs() {
 	for (int idx = 0; idx < m_nchip; idx++) {
-	  delete [] m_chipDacs[idx];
+	  delete m_chipDacs[idx];
 	}
 }
 
@@ -718,13 +718,13 @@ void MpxDacs::applyChipDacs(int chipid) {
 	if (chipid == 0) {
 		for (int idx = 0; idx < m_nchip; idx++) {
 			getFsrString(idx + 1, sfsr);
-			DEB_TRACE() << "Loading Chip FSR #" << chipid << " ...";
+			std::cout << "Loading Chip FSR #" << idx+1 << " ..." << std::endl;
 			m_pacq->setChipFsr((*m_priamPorts)[idx], sfsr);
 		}
 	} else {
 		int port = (*m_priamPorts)[chipid - 1];
 		getFsrString(chipid, sfsr);
-		DEB_TRACE() << "Loading Chip FSR #" << chipid << " ...";
+		std::cout << "Loading Chip FSR #" << chipid << " ..." << std::cout;
 		m_pacq->setChipFsr(port, sfsr);
 		// need to wait for FSR transfer at least for the last
 		// chip otherwise an immediate exposure could make image

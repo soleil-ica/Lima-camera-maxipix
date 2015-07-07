@@ -19,37 +19,37 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 ############################################################################
-include ../../../config.inc
-include ../../common/espia/include/espia.inc
+include ../../../../config.inc
+include ../../../common/espia/include/espia.inc
 
 SRCS = test.cpp  test2.cpp
 
-CXXFLAGS = -I../include \
-	   -I../tools/cpp \
+CXXFLAGS = -I../../include \
+	   -I../../tools/cpp \
            -DWITH_SPS_IMAGE -DWITH_CONFIG \
 	   -Wall -pthread -g
 
-INCLUDES = -I../include \
-           -I../tools/src \
-           -I../../../common/include \
-           -I../../../control/include \
-           -I../../../hardware/include \
-           -I../../common/espia/include \
+INCLUDES = -I../../include \
+           -I../../tools/src \
+           -I../../../../common/include \
+           -I../../../../control/include \
+           -I../../../../hardware/include \
+           -I../../../common/espia/include \
            -I$(ESPIA_DRV_INCL) \
-           -I../../../third-party/Processlib/core/include \
-           -I../../../third-party/libconfig/lib
+           -I../../../../third-party/Processlib/core/include \
+           -I../../../../third-party/libconfig/lib
 
-LDFLAGS = -pthread -L../../../build  -L../../../third-party/Processlib/build -L$(ESPIA_DRV_LIB)
+LDFLAGS = -pthread -L../../../../build  -L../../../../third-party/Processlib/build -L$(ESPIA_DRV_LIB)
 LDLIBS = -llimacore  -lprocesslib -llimaespia -lespia 
 
 test-progs = test test2
 
 all: 	$(test-progs)
 
-test:		test.o ../tools/src/libINIReader.o
+test:		test.o ../../tools/src/libINIReader.o
 	$(CXX) $(LDFLAGS) -o $@ $+ $(LDLIBS)
 
-test2:		test2.o ../src/Maxipix.o
+test2:		test2.o ../../src/Maxipix.o
 	$(CXX) $(LDFLAGS) -o $@ $+ $(LDLIBS)
 
 clean:

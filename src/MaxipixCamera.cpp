@@ -62,8 +62,9 @@ Camera::Camera(int espia_dev_nb, const std::string& config_path,
 
 Camera::~Camera() {
 	DEB_DESTRUCTOR();
-	delete[] m_chipCfg;
-	delete[] m_mpxDacs;
+	delete m_chipCfg;
+	delete m_mpxDacs;
+	delete m_reconstructionTask;
 }
 
 void Camera::reset(HwInterface::ResetLevel reset_level) {
@@ -73,7 +74,7 @@ void Camera::reset(HwInterface::ResetLevel reset_level) {
 	stopAcq();
 
 	if (reset_level == HwInterface::HardReset) {
-		DEB_TRACE() << "Performing chip hard reset";
+		DEB_ALWAYS() << "Performing chip hard reset";
 		m_priamAcq.resetAllChip();
 	}
 	m_priamAcq.resetAllFifo();
@@ -409,7 +410,7 @@ void Camera::loadDetConfig(const std::string& name, bool reconstruction) {
 
 	MpxDetConfig detConfig;
 	detConfig.setPath(m_cfgPath);
-	DEB_TRACE() << "Loading Detector Config <" << name << "> ...";
+	std::cout << "Loading Detector Config <" << name << "> ..." << std::endl;
 	detConfig.loadConfig(name);
 	detConfig.getFilename(m_cfgFilename);
 	detConfig.getPriamPorts(m_priamPorts);
@@ -425,7 +426,7 @@ void Camera::loadDetConfig(const std::string& name, bool reconstruction) {
 	m_mpxDacs->setPriamPars(&m_priamAcq, &m_priamPorts);
 	DEB_TRACE() << DEB_VAR1(m_layout);
 
-	DEB_TRACE() << "Setting PRIAM configuration ...";
+	std::cout << "Setting PRIAM configuration ..." << std::endl;
 	std::string fsrString;
 	m_mpxDacs->getFsrString(1, fsrString);
 	detConfig.getFrequency(frequency);
@@ -445,7 +446,7 @@ void Camera::loadDetConfig(const std::string& name, bool reconstruction) {
 	detConfig.getEnergy(energy);
 	m_mpxDacs->setEnergy(energy);
 	m_mpxDacs->applyChipDacs(0);
-	DEB_TRACE() << "Startup energy threshold = " << energy << " KeV";
+	std::cout << "Startup energy threshold = " << energy << " KeV" << std::endl;
 
 	// Reconstruction can be not apply if requested
 	setReconstructionActive(reconstruction);
@@ -454,7 +455,6 @@ void Camera::loadDetConfig(const std::string& name, bool reconstruction) {
 void Camera::setReconstructionActive(bool active) {
 	DEB_MEMBER_FUNCT();
 	// get the default reconstruction task (object) set from the read config parameters
-	// but first inform the hwInt to no reconstruction
 	if (!m_reconstructionTask) {
 		delete m_reconstructionTask;
 	}
@@ -465,7 +465,7 @@ void Camera::setReconstructionActive(bool active) {
 	int xgap, ygap;
 	MaxipixReconstruction::Layout layout;
 
-	// test first if the reconstruction is  desactived then force to NONE
+	// test first if the reconstruction is desactived then force to NONE
 	if (!active) {
 		layout = MaxipixReconstruction::L_NONE;
 		// flatten detector
@@ -484,7 +484,7 @@ void Camera::setReconstructionActive(bool active) {
 	setChipsPosition(m_positions);
 
 	// must be called even if reconstruction is inactive or NONE,
-	// this updates the image size
+	// it gets the image size updating by callback
 	m_reconstructionTask = getReconstructionTask();
 	std::string d_model;
 	getDetectorModel(d_model);
@@ -492,14 +492,13 @@ void Camera::setReconstructionActive(bool active) {
 	// now decide to active or not a reconstruction
 	// accord to either the config file and/or the "active" flag
 	if (active && m_reconstructionTask != NULL) {
-		DEB_TRACE() << "Image reconstruction is switched ON, model:" << d_model;
-//		m_hwInt.setReconstructionTask(m_reconstruct);
+	       std::cout << "Image reconstruction is switched ON, model:" << d_model << std::endl;
 	} else {
-		// no reconstruction, tell the user why
+	        // no reconstruction, tell the user why
 		if (active && m_reconstructionTask != NULL) {
-			DEB_TRACE() << "Image reconstruction is switched OFF (active=true, config=off), model: " << d_model;
+		  std::cout << "Image reconstruction is switched OFF (active=true, config=off), model: " << d_model <<std::endl;
 		} else {
-			DEB_TRACE() << "Image reconstruction is switched OFF (active=false), model: " << d_model;
+		  std::cout << "Image reconstruction is switched OFF (active=false), model: " << d_model <<std::endl;
 		}
 	}
 }
@@ -518,40 +517,40 @@ void Camera::applyPixelConfig(int chipid) {
 	if (chipid == 0) {
 		for (int idx = 0; idx < m_nchips; idx++) {
 			m_chipCfg->getMpxString(idx + 1, scfg);
-			DEB_TRACE() << "Loading Chip Config #" << (idx + 1) << " ...";
+			std::cout << "Loading Chip Config #" << (idx + 1) << " ..." << std::endl;
 			m_priamAcq.setChipCfg(m_priamPorts[idx], scfg);
 		}
 	} else {
 		short port = getPriamPort(chipid);
 		m_chipCfg->getMpxString(chipid, scfg);
-		DEB_TRACE() << "Loading Chip Config #" << (chipid) << " ...";
+		std::cout << "Loading Chip Config #" << (chipid) << " ..." << std::endl;
 		m_priamAcq.setChipCfg(port, scfg);
-
-		// After chip(s) configuration a chip pixel value is needed and
-		// can only be done by reading the chips, this can be done with
-		// a dummy acquisition
-		DEB_TRACE() << "Resetting chip(s) pixels ...";
-		double exptime, settime;
-		int nbframes;
-		m_priamAcq.getExposureTime(exptime);
-		m_priamAcq.getNbFrames(nbframes);
-		if (nbframes == 0) {
-			nbframes = 1;
-		}
-		m_priamAcq.setExposureTime(0.01, settime);
-		m_priamAcq.setNbFrames(1);
-		m_priamAcq.startAcq();
-		sleep(100);
-		DetStatus status;
-		m_priamAcq.getStatus(status);
-		if (status != DetIdle) {
-			m_priamAcq.stopAcq();
-			THROW_HW_ERROR(Error) << "Cannot reset chip(s) after config.";
-		}
-		m_priamAcq.stopAcq();
-		m_priamAcq.setExposureTime(exptime, settime);
-		m_priamAcq.setNbFrames(nbframes);
 	}
+	// After chip(s) configuration a chip pixel value is needed and
+	// can only be done by reading the chips, this can be done with
+	// a dummy acquisition
+	std::cout << "Resetting chip(s) pixels ..." << std::endl;
+	double exptime, settime;
+	int nbframes;
+	m_priamAcq.getExposureTime(exptime);
+	m_priamAcq.getNbFrames(nbframes);
+	if (nbframes == 0) {
+	  nbframes = 1;
+	}
+	m_priamAcq.setExposureTime(0.01, settime);
+	m_priamAcq.setNbFrames(1);
+	m_priamAcq.startAcq();
+	sleep(1);
+	DetStatus status;
+	m_priamAcq.getStatus(status);
+	if (status != DetIdle) {
+	  m_priamAcq.stopAcq();
+	  THROW_HW_ERROR(Error) << "Cannot reset chip(s) after config.";
+	}
+	m_priamAcq.stopAcq();
+	m_priamAcq.setExposureTime(exptime, settime);
+	m_priamAcq.setNbFrames(nbframes);
+	
 }
 
 void Camera::acqLoadConfig(const std::string& name, bool reconstruction) {
@@ -559,7 +558,7 @@ void Camera::acqLoadConfig(const std::string& name, bool reconstruction) {
 	try {
 		loadDetConfig(name, reconstruction);
 		loadChipConfig(name);
-		DEB_TRACE() << "End of configuration, Maxipix is Ok !";
+		std::cout << "End of configuration, Maxipix is Ok !" << std::endl;
 	} catch (Exception & e) {
 	}
 }

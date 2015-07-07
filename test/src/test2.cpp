@@ -21,9 +21,9 @@ int main()
       Interface *m_interface;
       CtControl* m_control;
 
-      DebParams::setModuleFlags(DebParams::AllFlags);
-      DebParams::setTypeFlags(DebParams::AllFlags);
-      DebParams::setFormatFlags(DebParams::AllFlags);
+      //DebParams::setModuleFlags(DebParams::AllFlags);
+      //DebParams::setTypeFlags(DebParams::AllFlags);
+      //DebParams::setFormatFlags(DebParams::AllFlags);
 
       string path = "/users/blissadm/local/maxipix/tpxatl25/";
       string filename = "tpxatl25";
@@ -50,13 +50,13 @@ int main()
       int nframes = 10;
       // setup fileformat and data saving info
       CtSaving* saving = m_control->saving();
-      saving->setDirectory("/users/gmant");
+      saving->setDirectory("./");
       saving->setFramesPerFile(nframes);
       saving->setFormat(CtSaving::EDF);
       saving->setPrefix("maxipix_");
       saving->setSuffix(".edf");
       saving->setSavingMode(CtSaving::AutoFrame);
-      saving->setOverwritePolicy(CtSaving::Append);
+      //saving->setOverwritePolicy(CtSaving::Append);
 
       // do acquisition
       m_control->acquisition()->setAcqExpoTime(2.0);
@@ -66,11 +66,13 @@ int main()
       m_control->startAcq();
       while(1) {
 	cout << "sleeping ...." <<  endl;
-	usleep(100);
+	sleep(1);
 	if (!m_camera->isAcqRunning())
 	  break;
       }
       sleep(5); //all done!
-
+      delete m_control;
+	delete m_interface;
+	delete m_camera;
       return(1);
 }
