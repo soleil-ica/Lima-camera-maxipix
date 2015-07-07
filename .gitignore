@@ -2,3 +2,6 @@
 *.o
 *~
 *.so
+core.*
+test
+test2
