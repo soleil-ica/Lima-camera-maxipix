@@ -385,14 +385,10 @@ void Camera::getFillMode(MaxipixReconstruction::Type& reconstructType) const {
 }
 
 void Camera::setFillMode(MaxipixReconstruction::Type fillMode) {
-	DEB_MEMBER_FUNCT();
-	if (m_reconstructionTask) {
-		if (convert_2_string(fillMode) == "Unknown") {
-			THROW_HW_ERROR(Error) << "invalid reconstruction fill mode " << fillMode;
-		} else {
-			m_reconstructType = fillMode;
-			m_reconstructionTask->setType(fillMode);
-		}
+	DEB_MEMBER_FUNCT();      
+	if (m_reconstructionTask != NULL) {
+	        m_reconstructType = fillMode;
+		m_reconstructionTask->setType(fillMode);	       
 	}
 }
 

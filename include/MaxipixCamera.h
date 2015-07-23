@@ -112,6 +112,12 @@ public:
 	void loadChipConfig(const std::string& name);
 	void applyPixelConfig(int chipid);
 
+	void setEnergy(double energy) {m_mpxDacs->setEnergy(energy);m_mpxDacs->applyChipDacs(0); }
+	void getEnergy(double& energy){m_mpxDacs->getEnergy(energy); }
+
+	PriamAcq* priamAcq() {return &m_priamAcq; }
+
+
 	MaxipixReconstruction* getReconstructionTask();
 
 	// Buffer control object

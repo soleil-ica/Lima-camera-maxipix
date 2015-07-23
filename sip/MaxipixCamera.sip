@@ -27,6 +27,7 @@ class Camera {
 %TypeHeaderCode
 #include "MaxipixCamera.h"
 #include "MpxVersion.h"
+#include "PriamAcq.h"
 %End
 
 public:
@@ -88,6 +89,11 @@ public:
 	void setReconstructionActive(bool active);
 	void loadChipConfig(const std::string& name);
 	void applyPixelConfig(int chipid);
+
+	void setEnergy(double energy);
+	void getEnergy(double& energy /Out/);
+
+	Maxipix::PriamAcq* priamAcq();
 
 	Maxipix::MaxipixReconstruction* getReconstructionTask();
 
