@@ -597,7 +597,7 @@ lima::Size MaxipixReconstruction::getImageSize() const
 
       //Init
       xMin = chip_pos->origin.x;
-      xMax = xMax + MAXIPIX_NB_COLUMN;
+      xMax = xMin + MAXIPIX_NB_COLUMN;
 
       yMin = chip_pos->origin.y;
       yMax = yMin + MAXIPIX_NB_LINE;

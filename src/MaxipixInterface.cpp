@@ -362,6 +362,21 @@ void ReconstructionCtrlObj::setReconstructionTask(LinkTask* task) {
 	reconstructionChange(task);
 }
 
+
+class Interface::_ConfigThread : public Thread
+{
+  DEB_CLASS_NAMESPC(DebModCamera, "Interface", "_ConfigThread");
+public:
+  _ConfigThread(Interface& aHwInt);
+
+protected:
+  virtual void threadFunction();
+
+private:
+  Interface& m_hwint;
+};
+
+
 /*******************************************************************
  * \brief Hw Interface constructor
  *******************************************************************/
@@ -390,10 +405,14 @@ Interface::Interface(Camera& cam) :
 	m_reconstructionTask = m_cam.getReconstructionTask();
 	m_reconstructionCtrlObj.setReconstructionTask(m_reconstructionTask);
 	reset(SoftReset);
+
+	m_conf_thread = new _ConfigThread(*this);
+
 }
 
 Interface::~Interface() {
 	DEB_DESTRUCTOR();
+	delete m_conf_thread;
 }
 
 void Interface::getCapList(HwInterface::CapList &cap_list) const {
@@ -446,4 +465,39 @@ void Interface::getStatus(StatusType& status) {
 
 void Interface::setConfigFlag(bool flag) {
 	m_config_flag = flag;
+}
+
+void Interface::loadConfig(const std::string& name, bool reconstruction)
+{
+	DEB_MEMBER_FUNCT();
+
+	m_config_name = name;
+	m_reconstuct_flag = reconstruction;
+	// switch acq status to AcqConfig, thread will switched back to false
+	m_config_flag = true;
+	m_conf_thread->start();
+}
+
+// Config thread
+// (re)loading of a configuration takes a while so to stay in asynchronious mode
+// the config loading is threaded and Lima status can be switched to AcqConfig state
+// while the detector is reconfigured.
+Interface::_ConfigThread::_ConfigThread(Interface& aHwInt) :
+  m_hwint(aHwInt)
+{
+        pthread_attr_setscope(&m_thread_attr, PTHREAD_SCOPE_PROCESS);
+}
+
+//---------------------------
+//- Interface::_ConfigThread::threadFunction()
+//---------------------------
+void Interface::_ConfigThread::threadFunction()
+{
+        DEB_MEMBER_FUNCT();
+	DEB_ALWAYS() << "Ok, reconfiguring the detector in _ConfigThread";
+	m_hwint.m_cam.loadConfig(m_hwint.m_config_name, m_hwint.m_reconstuct_flag);
+	m_hwint.m_config_flag = false;
+	DEB_ALWAYS() << "Ok, finished _ConfigThread thread";
+	// join to get pthread ended and start again possible for next reconfig
+	join();
 }

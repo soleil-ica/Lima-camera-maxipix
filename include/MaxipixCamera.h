@@ -69,13 +69,13 @@ public:
 	bool checkTrigMode(TrigMode mode, bool accumulationMode);
 
 	void setExpTime(double  exp_time);
-    void getExpTime(double& exp_time);
-    void setLatTime(double  lat_time);
-    void getLatTime(double& lat_time);
-
-    void setNbHwFrames(int  nb_frames);
-    void getNbHwFrames(int& nb_frames);
-    void getValidRanges(HwSyncCtrlObj::ValidRangesType& valid_ranges);
+	void getExpTime(double& exp_time);
+	void setLatTime(double  lat_time);
+	void getLatTime(double& lat_time);
+	
+	void setNbHwFrames(int  nb_frames);
+	void getNbHwFrames(int& nb_frames);
+	void getValidRanges(HwSyncCtrlObj::ValidRangesType& valid_ranges);
 
 	void getImageSize(Size& size);
 	void getPixelSize(double& x_size, double& y_size);
@@ -97,26 +97,16 @@ public:
 
 	// Maxipix specific
 
-	void setVersion(Version version);
-	void setNbChip(int xchip, int ychip);
-	void setPixelGap(int xgap, int ygap);
-	void setChipsPosition(const MaxipixReconstruction::PositionList& positions);
-	void setChipsLayout(const MaxipixReconstruction::Layout& layout);
+	void setPath(const std::string& path);
+	void loadConfig(const std::string& name, bool reconstruction = true);
 
 	void getFillMode(MaxipixReconstruction::Type& type) const;
 	void setFillMode(MaxipixReconstruction::Type type);
-	void setPath(const std::string& path);
-	void loadConfig(const std::string& name, bool reconstruction = true);
-	void loadDetConfig(const std::string& name, bool reconstruction);
-	void setReconstructionActive(bool active);
-	void loadChipConfig(const std::string& name);
-	void applyPixelConfig(int chipid);
 
 	void setEnergy(double energy) {m_mpxDacs->setEnergy(energy);m_mpxDacs->applyChipDacs(0); }
 	void getEnergy(double& energy){m_mpxDacs->getEnergy(energy); }
 
 	PriamAcq* priamAcq() {return &m_priamAcq; }
-
 
 	MaxipixReconstruction* getReconstructionTask();
 
@@ -127,6 +117,16 @@ protected:
 	virtual void setMaxImageSizeCallbackActive(bool cb_active);
 
 private:
+	void setVersion(Version version);
+	void setNbChip(int xchip, int ychip);
+	void setPixelGap(int xgap, int ygap);
+	void setChipsLayout(const MaxipixReconstruction::Layout& layout);
+
+	void loadDetConfig(const std::string& name, bool reconstruction);
+	void setReconstructionActive(bool active);
+	void loadChipConfig(const std::string& name);
+	void applyPixelConfig(int chipid);
+
 
 	class AcqEndCallback: public Espia::AcqEndCallback {
 	DEB_CLASS_NAMESPC(DebModCamera, "Camera::AcqEndCallback",

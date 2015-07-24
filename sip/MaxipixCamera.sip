@@ -75,28 +75,15 @@ public:
 
 	// Maxipix specific
 
-	void setVersion(lima::Maxipix::Version version);
-	void setNbChip(int xchip, int ychip);
-	void setPixelGap(int xgap, int ygap);
-	void setChipsPosition(const MaxipixReconstruction::PositionList& positions);
-	void setChipsLayout(const Maxipix::MaxipixReconstruction::Layout& layout);
-
 	void getFillMode(Maxipix::MaxipixReconstruction::Type& type /Out/) const;
 	void setFillMode(Maxipix::MaxipixReconstruction::Type type);
 	void setPath(const std::string& path);
-	void loadConfig(const std::string& name, bool reconstruction);
-	void loadDetConfig(const std::string& name, bool reconstruction);
-	void setReconstructionActive(bool active);
-	void loadChipConfig(const std::string& name);
-	void applyPixelConfig(int chipid);
+	void loadConfig(const std::string& name, bool reconstruction=true);
 
 	void setEnergy(double energy);
 	void getEnergy(double& energy /Out/);
 
 	Maxipix::PriamAcq* priamAcq();
-
-	Maxipix::MaxipixReconstruction* getReconstructionTask();
-
 };
 
 };

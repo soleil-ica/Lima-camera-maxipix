@@ -31,7 +31,7 @@ class Interface : HwInterface
 #include "EspiaBufferMgr.h"
 #include "MaxipixInterface.h"
 #include "MaxipixCamera.h"
-
+#include "PriamAcq.h"
 %End
  public:
 	Interface(Maxipix::Camera& cam /KeepReference/);
@@ -45,6 +45,17 @@ class Interface : HwInterface
 	virtual void stopAcq();
 	virtual void getStatus(HwInterface::StatusType& status /Out/);
 	virtual int getNbHwAcquiredFrames();
+
+	void getFillMode(Maxipix::MaxipixReconstruction::Type& type /Out/) const;
+	void setFillMode(Maxipix::MaxipixReconstruction::Type type);
+	void setPath(const std::string& path);
+	void loadConfig(const std::string& name, bool reconstruction=true);
+
+	void setEnergy(double energy);
+	void getEnergy(double& energy /Out/);
+
+	Maxipix::PriamAcq* priamAcq();
+
 };
 
 }; // namespace Maxipix

@@ -26,6 +26,8 @@
 #include "lima/HwReconstructionCtrlObj.h"
 #include "EspiaBufferMgr.h"
 #include "MaxipixCamera.h"
+#include "lima/ThreadUtils.h"
+#include "lima/Constants.h"
 
 namespace lima {
 namespace Maxipix {
@@ -155,8 +157,8 @@ public:
  Interface(Camera& cam);
 	virtual ~Interface();
 
+	// From HwInterface
 	virtual void getCapList(CapList&) const;
-
 	virtual void reset(ResetLevel reset_level);
 	virtual void prepareAcq();
 	virtual void startAcq();
@@ -165,7 +167,23 @@ public:
 	virtual int getNbHwAcquiredFrames();
 	void setConfigFlag(bool flag);
 
+	// Wrapping to export Camera methods
+	void setPath(const std::string& path){m_cam.setPath(path);}
+	void loadConfig(const std::string& name, bool reconstruction = true);
+
+	void getFillMode(MaxipixReconstruction::Type& type) {m_cam.setFillMode(type);}
+	void setFillMode(MaxipixReconstruction::Type type) {m_cam.getFillMode(type);}
+
+	void setEnergy(double energy){m_cam.setEnergy(energy);}
+	void getEnergy(double& energy){m_cam.getEnergy(energy);}
+
+	PriamAcq* priamAcq() {return m_cam.priamAcq(); }
+
 private:
+	class _ConfigThread;
+	friend class _ConfigThread;
+	_ConfigThread* m_conf_thread;
+
 	Camera& m_cam;
 	CapList m_cap_list;
 	DetInfoCtrlObj m_det_info;
@@ -174,6 +192,8 @@ private:
 	ReconstructionCtrlObj m_reconstructionCtrlObj;
 	LinkTask* m_reconstructionTask;
 	bool m_config_flag;
+	std::string m_config_name;
+	bool m_reconstuct_flag;
 };
 
 } // namespace Maxipix

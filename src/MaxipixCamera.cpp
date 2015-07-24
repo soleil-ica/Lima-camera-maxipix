@@ -338,14 +338,6 @@ void Camera::setChipsLayout(const MaxipixReconstruction::Layout& layout) {
 	m_layout = layout;
 }
 
-void Camera::setChipsPosition(
-		const MaxipixReconstruction::PositionList& positions) {
-	DEB_MEMBER_FUNCT();
-	DEB_PARAM() << DEB_VAR1(positions.size());
-
-	m_positions = positions;
-}
-
 MaxipixReconstruction* Camera::getReconstructionTask() {
 	DEB_MEMBER_FUNCT();
 	MaxipixReconstruction *reconstruction = NULL;
@@ -396,6 +388,16 @@ void Camera::loadConfig(const std::string& name, bool reconstruction) {
 	DEB_MEMBER_FUNCT();
 //	thread.start_new_thread(Camera._loadConfig,(self,m_hwInt,name,reconstruction))
 	acqLoadConfig(name, reconstruction);
+}
+
+void Camera::acqLoadConfig(const std::string& name, bool reconstruction) {
+	DEB_MEMBER_FUNCT();
+	try {
+		loadDetConfig(name, reconstruction);
+		loadChipConfig(name);
+		std::cout << "End of configuration, Maxipix is Ok !" << std::endl;
+	} catch (Exception & e) {
+	}
 }
 
 void Camera::loadDetConfig(const std::string& name, bool reconstruction) {
@@ -477,8 +479,7 @@ void Camera::setReconstructionActive(bool active) {
 	setVersion(m_version);
 	setNbChip(xchips, ychips);
 	setPixelGap(xgap, ygap);
-	setChipsPosition(m_positions);
-
+	
 	// must be called even if reconstruction is inactive or NONE,
 	// it gets the image size updating by callback
 	m_reconstructionTask = getReconstructionTask();
@@ -547,16 +548,6 @@ void Camera::applyPixelConfig(int chipid) {
 	m_priamAcq.setExposureTime(exptime, settime);
 	m_priamAcq.setNbFrames(nbframes);
 	
-}
-
-void Camera::acqLoadConfig(const std::string& name, bool reconstruction) {
-	DEB_MEMBER_FUNCT();
-	try {
-		loadDetConfig(name, reconstruction);
-		loadChipConfig(name);
-		std::cout << "End of configuration, Maxipix is Ok !" << std::endl;
-	} catch (Exception & e) {
-	}
 }
 
 int Camera::getPriamPort(int chipid) {

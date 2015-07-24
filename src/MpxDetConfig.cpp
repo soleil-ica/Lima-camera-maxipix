@@ -225,12 +225,12 @@ void MpxDetConfig::parseLayoutGeneralSection(INIReader& reader) {
 		int x;
 		Range<int> range = Range<int>(0, 2048);
 		getMandatoryParam(reader, section, xname.str(), x, range);
-		((Point) position.origin).x = x;
+		position.origin.x = x;
 		std::stringstream yname;
 		yname << "yc_" << idx;
 		int y;
 		getMandatoryParam(reader, section, yname.str(), y, range);
-		((Point) position.origin).y = y;
+		position.origin.y = y;
 
 		m_positions.push_back(position);
 	}
