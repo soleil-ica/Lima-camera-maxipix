@@ -150,7 +150,7 @@ class MpxDetConfig:
         for idx in range(self.mpxCfg["nchips"]):
             name= "chip_%d"%(idx+1)
             self.priamPorts[idx]= self.__getParamOptional(pars, name, 
-                                                          range(5), self.priamPorts[idx]) -1 
+                                                          range(1,6), self.priamPorts[idx]) -1 
 
     def __parseLayoutSection(self, cfg):
         try:
