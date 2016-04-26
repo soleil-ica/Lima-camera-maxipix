@@ -201,6 +201,10 @@ void MpxDetConfig::parseLayoutSection(INIReader& reader) {
 	} else if (m_layout == MaxipixReconstruction::L_GENERAL || m_layout == MaxipixReconstruction::L_FREE) {
 			parseLayoutGeneralSection(reader);
 	} else if (m_layout == MaxipixReconstruction::L_NONE) {
+	                // flat detector set x to number of available chips and y to 1
+	                m_xchips = m_nchips;
+			m_ychips = 1;
+
 			return;
 	} else {
 		THROW_HW_ERROR(Error) << "No <layout_standard> section found";
@@ -259,14 +263,14 @@ void MpxDetConfig::parseCalibrationSection(INIReader& reader) {
 	std::string mode = reader.Get(section, "mode", "Unknown"); // not used
 	std::map<int, int> thlnoise;
 	std::map<int, int> thlxray;
-	for (int idx = 1; idx <= m_nchips; idx++) {
+	for (int idx = 0; idx < m_nchips; idx++) {
 		std::stringstream noise;
-		noise << "thlnoise_" << idx;
+		noise << "thlnoise_" << idx+1;
 		int value;
 		getMandatoryParam(reader, section, noise.str(), value);
 		thlnoise[idx] = value;
 		std::stringstream xray;
-		xray << "thlxray_" << idx;
+		xray << "thlxray_" << idx+1;
 		getMandatoryParam(reader, section, xray.str(), value);
 		thlxray[idx] = value;
 	}
