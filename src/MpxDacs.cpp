@@ -594,8 +594,7 @@ void MpxChipDacs::setDacs(std::map<std::string, int>& dacs) {
 }
 
 std::vector<std::string> MpxChipDacs::getListKeys() {
-	DEB_MEMBER_FUNCT();
-	return MpxFsrDef::getInstance(m_version)->listKeys(false);
+        return MpxFsrDef::getInstance(m_version)->listKeys(false);
 }
 
 void MpxChipDacs::setValue(std::string& name, int value) {
