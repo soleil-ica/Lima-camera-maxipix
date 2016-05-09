@@ -19,7 +19,40 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 ############################################################################
-src-dirs  = src tools/src
-test-dirs = test/src
 
-include ../../global.inc
+INIReader-objs := INIReader.o ../ini.o
+
+SRCS = $(INIReader-objs:.o=.cpp)
+
+INCLUDES = -I../
+
+CXXFLAGS += $(INCLUDES) -fPIC -Wall -pthread
+#-std=c++0x
+
+all: libINIReader.o
+
+libINIReader.o: $(INIReader-objs)
+	ld -o $@ -r $+
+
+clean:
+	rm -f libINIReader.o $(INIReader-objs) *.P
+
+%.o : %.cpp
+	$(COMPILE.cpp) -MD $(CXXFLAGS) -o $@ $<
+	@cp $*.d $*.P; \
+	sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' \
+	-e '/^$$/ d' -e 's/$$/ :/' < $*.d >> $*.P; \
+	rm -f $*.d
+
+%.o : %.c
+	$(COMPILE.c) -MD $(CXXFLAGS) -o $@ $<
+	@cp $*.d $*.P; \
+	sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' \
+	-e '/^$$/ d' -e 's/$$/ :/' < $*.d >> $*.P; \
+	rm -f $*.d
+
+-include $(SRCS:.cpp=.P)
+
+.PHONY: check-syntax
+check-syntax:
+	$(CXX) -Wall -Wextra -fsyntax-only $(CXXFLAGS) $(CHK_SOURCES)

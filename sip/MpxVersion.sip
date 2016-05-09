@@ -19,50 +19,15 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //###########################################################################
-#ifndef _PRIAMARR_H
-#define _PRIAMARR_H
 
-#include <string>
-#include <stdint.h>
-#include "MpxVersion.h"
 
 namespace lima {
 namespace Maxipix {
+%TypeHeaderCode
+#include "MpxVersion.h"
+%End
 
-class PixelConfigArray {
-public:
-
-	PixelConfigArray(Version version);
-	void convert(std::string&);
-
-	unsigned char* maskArray;
-	unsigned char* testArray;
-	unsigned char* lowArray;
-	unsigned char* highArray;
-
-private:
-	struct PixelArrayBitType {
-		short mask;
-		short test;
-		short nbLow;
-		short low[4];
-		short nbHigh;
-		short high[4];
-	};
-
-	Version m_version;
-	PixelArrayBitType m_bit;
+enum Version {DUMMY, MPX2, MXR2, TPX1};
+enum Polarity {NEGATIVE, POSITIVE};
 };
-
-class PixelDataArray {
-public:
-
-  PixelDataArray();
-	void convert(const std::string&, unsigned short*);
-
 };
-
-}
-}
-
-#endif // _PRIAMARR_H

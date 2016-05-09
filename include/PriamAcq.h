@@ -1,7 +1,7 @@
 //###########################################################################
 // This file is part of LImA, a Library for Image Acquisition
 //
-// Copyright (C) : 2009-2011
+// Copyright (C) : 2009-2015
 // European Synchrotron Radiation Facility
 // BP 220, Grenoble 38043
 // FRANCE
@@ -25,9 +25,11 @@
 #include <string>
 #include <vector>
 
-#include "PriamSerial.h"
-#include "MaxipixDet.h"
+#include "lima/Debug.h"
+#include "lima/Exceptions.h"
 #include "lima/Constants.h"
+#include "PriamSerial.h"
+#include "MpxVersion.h"
 
 namespace lima {
 namespace Maxipix {
@@ -88,9 +90,9 @@ class PriamAcq {
 
     // --- configuration
 
-    void setup(MaxipixDet::Version ver, MaxipixDet::Polarity pol, \
+    void setup(Version version, Polarity polarity,
 		float freq, const std::string &fsr0);
-    void setChipType(MaxipixDet::Version, MaxipixDet::Polarity);
+    void setChipType(Version version, Polarity polarity);
 
     void getBoardVersion(short& pcb, short& firmware) const;
     void getChipID(short port, long& id) const;
@@ -157,7 +159,7 @@ class PriamAcq {
     void getNbFrames(int& nb) const;
 
     void setSerialReadout(short port);
-    void setParalellReadout(std::vector<int> ports);
+    void setParallelReadout(std::vector<int> ports);
     void getReadoutMode(ReadoutMode& mode, std::vector<int>& ports) const;
 
     void setImageMode(ImageMode image);
@@ -179,6 +181,10 @@ class PriamAcq {
     void resetAllChip();
 
   private:
+
+    //PriamAcq(const PriamAcq& ctrl);
+    //PriamAcq& operator=(const PriamAcq& ctrl);
+
     void _readBoardID();
     void _timeAdjust();
     void _timeToReg(double,double&,std::string&,std::string&);
@@ -191,46 +197,46 @@ class PriamAcq {
     inline void _checkPortNr(short port) const;
 
 
-    PriamSerial& 		m_priam_serial;
+    PriamSerial 	m_priam_serial;
     short			m_setup;
-    MaxipixDet::Version  	m_version;
+    Version	m_version;
     std::vector<long> 		m_chip_id;
-    std::string 		m_board_id;
+    std::string 	m_board_id;
     short			m_pcb; 
     short			m_firmware;
     float			m_osc_frequency;
-    std::string			m_chip_fsr0;
+    std::string		m_chip_fsr0;
     bool			m_fo_fast;
 
-    TimeUnit			m_time_unit;
+    TimeUnit		m_time_unit;
     double			m_time_us;
     double			m_min_it;
     double			m_expo_time;
     double			m_int_time;
 
-    SignalLevel			m_shut_level;
-    ShutterMode			m_shut_mode;
-    SignalLevel			m_ready_level;
-    ReadyMode			m_ready_mode;
-    SignalLevel			m_gate_level;
-    GateMode			m_gate_mode;
-    SignalLevel			m_trig_level;
-    TrigMode			m_trig_mode;
+    SignalLevel		m_shut_level;
+    ShutterMode		m_shut_mode;
+    SignalLevel		m_ready_level;
+    ReadyMode		m_ready_mode;
+    SignalLevel		m_gate_level;
+    GateMode		m_gate_mode;
+    SignalLevel		m_trig_level;
+    TrigMode		m_trig_mode;
 
-    ReadoutMode 		m_read_mode;
-    ImageMode   		m_img_mode;
+    ReadoutMode 	m_read_mode;
+    ImageMode   	m_img_mode;
     short			m_flatfield;	
     int				m_nb_frame;
 
     std::vector<int>  		m_port_used;
 };
 
-inline void PriamAcq::_checkPortNr(short port) const
-{
-    DEB_MEMBER_FUNCT();
-    if ((port<0)||(port>=maxPorts))
-	THROW_HW_ERROR(InvalidValue) << "Invalid priam " << DEB_VAR1(port);
-};
+inline void PriamAcq::_checkPortNr(short port) const {
+	DEB_MEMBER_FUNCT();
+	if ((port < 0) || (port >= maxPorts))
+		THROW_HW_ERROR(InvalidValue) << "Invalid priam " << DEB_VAR1(port);
+}
+
 
 }; // namespace Maxipix
 }; // namespace lima

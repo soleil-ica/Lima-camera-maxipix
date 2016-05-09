@@ -1,7 +1,7 @@
 //###########################################################################
 // This file is part of LImA, a Library for Image Acquisition
 //
-// Copyright (C) : 2009-2011
+// Copyright (C) : 2009-2015
 // European Synchrotron Radiation Facility
 // BP 220, Grenoble 38043
 // FRANCE
@@ -25,82 +25,41 @@
 #include "lima/HwInterface.h"
 #include "lima/HwReconstructionCtrlObj.h"
 #include "EspiaBufferMgr.h"
-#include "MaxipixDet.h"
-#include "PriamAcq.h"
+#include "MaxipixCamera.h"
+#include "lima/ThreadUtils.h"
+#include "lima/Constants.h"
 
-namespace lima
-{
-
-namespace Maxipix
-{
+namespace lima {
+namespace Maxipix {
 
 /*******************************************************************
  * \class DetInfoCtrlObj
  * \brief Control object providing Maxipix detector info interface
  *******************************************************************/
 
-class DetInfoCtrlObj : public HwDetInfoCtrlObj
-{
-  DEB_CLASS_NAMESPC(DebModCamera, "DetInfoCtrlObj", "Maxipix");
+class DetInfoCtrlObj: public HwDetInfoCtrlObj {
+DEB_CLASS_NAMESPC(DebModCamera, "DetInfoCtrlObj", "Maxipix");
 
-  public:
-    DetInfoCtrlObj(MaxipixDet& det);
-    virtual ~DetInfoCtrlObj();
+public:
+	DetInfoCtrlObj(Camera& cam);
+	virtual ~DetInfoCtrlObj();
 
-    virtual void getMaxImageSize(Size& size);
-    virtual void getDetectorImageSize(Size& size);
+	virtual void getMaxImageSize(Size& size);
+	virtual void getDetectorImageSize(Size& size);
 
-    virtual void getDefImageType(ImageType& image_type);
-    virtual void getCurrImageType(ImageType& image_type);
-    virtual void setCurrImageType(ImageType image_type);
+	virtual void getDefImageType(ImageType& image_type);
+	virtual void getCurrImageType(ImageType& image_type);
+	virtual void setCurrImageType(ImageType image_type);
 
-    virtual void getPixelSize(double& x_size, double& y_size);
-    virtual void getDetectorType(std::string& type);
-    virtual void getDetectorModel(std::string& model);
+	virtual void getPixelSize(double& x_size, double& y_size);
+	virtual void getDetectorType(std::string& type);
+	virtual void getDetectorModel(std::string& model);
 
-    virtual void registerMaxImageSizeCallback(HwMaxImageSizeCallback& cb);
-    virtual void unregisterMaxImageSizeCallback(HwMaxImageSizeCallback& cb);
+	virtual void registerMaxImageSizeCallback(HwMaxImageSizeCallback& cb);
+	virtual void unregisterMaxImageSizeCallback(HwMaxImageSizeCallback& cb);
 
-  private:
-    MaxipixDet& m_det;
-};
-
-
-/*******************************************************************
- * \class BufferCtrlObj
- * \brief Control object providing Maxipix buffering interface
- *******************************************************************/
-
-class BufferCtrlObj : public HwBufferCtrlObj
-{
-  DEB_CLASS_NAMESPC(DebModCamera, "BufferCtrlObj", "Maxipix");
-
-  public:
-    BufferCtrlObj(BufferCtrlMgr& buffer_mgr);
-    virtual ~BufferCtrlObj();
-
-    virtual void setFrameDim(const FrameDim& frame_dim);
-    virtual void getFrameDim(      FrameDim& frame_dim);
-
-    virtual void setNbBuffers(int  nb_buffers);
-    virtual void getNbBuffers(int& nb_buffers);
-
-    virtual void setNbConcatFrames(int  nb_concat_frames);
-    virtual void getNbConcatFrames(int& nb_concat_frames);
-
-    virtual void getMaxNbBuffers(int& max_nb_buffers);
-
-    virtual void *getBufferPtr(int buffer_nb, int concat_frame_nb = 0);
-    virtual void *getFramePtr(int acq_frame_nb);
-
-    virtual void getStartTimestamp(Timestamp& start_ts);
-    virtual void getFrameInfo(int acq_frame_nb, HwFrameInfoType& info);
-
-    virtual void   registerFrameCallback(HwFrameCallback& frame_cb);
-    virtual void unregisterFrameCallback(HwFrameCallback& frame_cb);
-
-  private:
-    BufferCtrlMgr& m_buffer_mgr;
+private:
+	Camera& m_cam;
 };
 
 
@@ -109,33 +68,31 @@ class BufferCtrlObj : public HwBufferCtrlObj
  * \brief Control object providing Maxipix synchronization interface
  *******************************************************************/
 
-class SyncCtrlObj : public HwSyncCtrlObj
-{
-    DEB_CLASS_NAMESPC(DebModCamera, "SyncCtrlObj", "Maxipix");
+class SyncCtrlObj: public HwSyncCtrlObj {
+DEB_CLASS_NAMESPC(DebModCamera, "SyncCtrlObj", "Maxipix");
 
-  public:
-    SyncCtrlObj(Espia::Acq& acq, PriamAcq& priam);
-    virtual ~SyncCtrlObj();
+public:
+	SyncCtrlObj(Camera& cam);
+	virtual ~SyncCtrlObj();
 
-    virtual bool checkTrigMode(TrigMode trig_mode);
-    virtual void setTrigMode(TrigMode  trig_mode);
-    virtual void getTrigMode(TrigMode& trig_mode);
+	virtual bool checkTrigMode(TrigMode trig_mode);
+	virtual void setTrigMode(TrigMode trig_mode);
+	virtual void getTrigMode(TrigMode& trig_mode);
 
-    virtual void setExpTime(double  exp_time);
-    virtual void getExpTime(double& exp_time);
+	virtual void setExpTime(double exp_time);
+	virtual void getExpTime(double& exp_time);
 
-    virtual void setLatTime(double  lat_time);
-    virtual void getLatTime(double& lat_time);
+	virtual void setLatTime(double lat_time);
+	virtual void getLatTime(double& lat_time);
 
-    virtual void setNbHwFrames(int  nb_frames);
-    virtual void getNbHwFrames(int& nb_frames);
+	virtual void setNbHwFrames(int nb_frames);
+	virtual void getNbHwFrames(int& nb_frames);
 
-    virtual void getValidRanges(ValidRangesType& valid_ranges);
+	virtual void getValidRanges(ValidRangesType& valid_ranges);
 
-  private:
-    bool _checkTrigMode(TrigMode trig_modei,bool with_acq_mode = false);
-    Espia::Acq& m_acq;
-    PriamAcq& m_priam;
+private:
+	bool _checkTrigMode(TrigMode trig_modei, bool with_acq_mode = false);
+	Camera& m_cam;
 };
 
 /*******************************************************************
@@ -148,7 +105,7 @@ class ShutterCtrlObj : public HwShutterCtrlObj
   DEB_CLASS_NAMESPC(DebModCamera, "ShutterCtrlObj", "Maxipix");
 
 public:
-	ShutterCtrlObj(PriamAcq& priam);
+	ShutterCtrlObj(Camera& cam);
 	virtual ~ShutterCtrlObj();
 
 	virtual bool checkMode(ShutterMode shut_mode) const;
@@ -165,7 +122,7 @@ public:
 	virtual void getCloseTime(double& shut_close_time) const;
 
  private:
-	PriamAcq& m_priam;
+    Camera& m_cam;
 };
 
 
@@ -173,17 +130,19 @@ public:
  * \class ReconstructionCtrlObj
  * \brief Control object providing reconstruction interface
  *******************************************************************/
-class ReconstructionCtrlObj : public HwReconstructionCtrlObj 
-{
-        DEB_CLASS_NAMESPC(DebModCamera, "ReconstructionCtrlObj", "Maxipix");
+class ReconstructionCtrlObj: public HwReconstructionCtrlObj {
+DEB_CLASS_NAMESPC(DebModCamera, "ReconstructionCtrlObj", "Maxipix");
 public:
-        ReconstructionCtrlObj(PriamAcq& priam);	
-        ~ReconstructionCtrlObj();	
-	virtual LinkTask* getReconstructionTask() {return m_reconstruct_task;}	
+	ReconstructionCtrlObj();
+	~ReconstructionCtrlObj();
+
+	virtual LinkTask* getReconstructionTask() {
+		return m_reconstruction_task;
+	}
 	void setReconstructionTask(LinkTask* task);
- private :
-	LinkTask* m_reconstruct_task;
-	PriamAcq& m_priam;
+
+private:
+	LinkTask* m_reconstruction_task;
 };
 
 
@@ -191,57 +150,50 @@ public:
  * \class Interface
  * \brief Maxipix hardware interface
  *******************************************************************/
-class Interface : public HwInterface
-{
-	DEB_CLASS_NAMESPC(DebModCamera, "Interface", "Maxipix");
+class Interface: public HwInterface {
+DEB_CLASS_NAMESPC(DebModCamera, "Interface", "Maxipix");
 
- public:
-	Interface(Espia::Acq& acq, BufferCtrlMgr& buffer_mgr, 
-		  PriamAcq& priam, MaxipixDet& det);
+public:
+ Interface(Camera& cam);
 	virtual ~Interface();
 
+	// From HwInterface
 	virtual void getCapList(CapList&) const;
-
 	virtual void reset(ResetLevel reset_level);
 	virtual void prepareAcq();
 	virtual void startAcq();
 	virtual void stopAcq();
 	virtual void getStatus(StatusType& status);
 	virtual int getNbHwAcquiredFrames();
-	void updateValidRanges();
-        void setConfigFlag(bool flag);
-	
-	void setReconstructionTask(LinkTask*);
- private:
-	class AcqEndCallback : public Espia::AcqEndCallback
-	{
-		DEB_CLASS_NAMESPC(DebModCamera, "Interface::AcqEndCallback", 
-				  "Maxipix");
+	void setConfigFlag(bool flag);
 
-	public:
-		AcqEndCallback(PriamAcq& priam);
-		virtual ~AcqEndCallback();
+	// Wrapping to export Camera methods
+	void setPath(const std::string& path){m_cam.setPath(path);}
+	void loadConfig(const std::string& name, bool reconstruction = true);
 
-	protected:
-		virtual void acqFinished(const HwFrameInfoType& /*finfo*/);
-	private:
-		PriamAcq& m_priam;
-	};
+	void getFillMode(MaxipixReconstruction::Type& type) {m_cam.setFillMode(type);}
+	void setFillMode(MaxipixReconstruction::Type type) {m_cam.getFillMode(type);}
 
-	Espia::Acq&	m_acq;
-	BufferCtrlMgr&	m_buffer_mgr;
-	PriamAcq&	m_priam;
-	AcqEndCallback  m_acq_end_cb;
+	void setEnergy(double energy){m_cam.setEnergy(energy);}
+	void getEnergy(double& energy){m_cam.getEnergy(energy);}
 
-	CapList                m_cap_list;
-	DetInfoCtrlObj         m_det_info;
-	BufferCtrlObj          m_buffer;
-	SyncCtrlObj            m_sync;
-	ShutterCtrlObj         m_shutter;
-	ReconstructionCtrlObj  m_reconstruction;
+	PriamAcq* priamAcq() {return m_cam.priamAcq(); }
 
- 	bool           m_prepare_flag;	
-        bool           m_config_flag; 
+private:
+	class _ConfigThread;
+	friend class _ConfigThread;
+	_ConfigThread* m_conf_thread;
+
+	Camera& m_cam;
+	CapList m_cap_list;
+	DetInfoCtrlObj m_det_info;
+	SyncCtrlObj m_sync;
+	ShutterCtrlObj m_shutter;
+	ReconstructionCtrlObj m_reconstructionCtrlObj;
+	LinkTask* m_reconstructionTask;
+	bool m_config_flag;
+	std::string m_config_name;
+	bool m_reconstuct_flag;
 };
 
 } // namespace Maxipix

@@ -1,7 +1,7 @@
 //###########################################################################
 // This file is part of LImA, a Library for Image Acquisition
 //
-// Copyright (C) : 2009-2014
+// Copyright (C) : 2009-2015
 // European Synchrotron Radiation Facility
 // BP 220, Grenoble 38043
 // FRANCE
@@ -597,7 +597,7 @@ lima::Size MaxipixReconstruction::getImageSize() const
 
       //Init
       xMin = chip_pos->origin.x;
-      xMax = xMax + MAXIPIX_NB_COLUMN;
+      xMax = xMin + MAXIPIX_NB_COLUMN;
 
       yMin = chip_pos->origin.y;
       yMax = yMin + MAXIPIX_NB_LINE;

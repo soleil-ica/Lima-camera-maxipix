@@ -29,7 +29,7 @@ namespace Maxipix {
 
 #include "PriamSerial.h"
 #include "PriamAcq.h"
-#include "MaxipixDet.h"
+#include "MpxVersion.h"
 #include "lima/Constants.h"
 
 using namespace lima;
@@ -86,8 +86,8 @@ public:
 
     // --- configuration
 
-    void setup(Maxipix::MaxipixDet::Version ver, Maxipix::MaxipixDet::Polarity pol, float freq,const std::string &fsr0);
-    void setChipType(Maxipix::MaxipixDet::Version v, Maxipix::MaxipixDet::Polarity p);
+    void setup(lima::Maxipix::Version ver, lima::Maxipix::Polarity pol, float freq,const std::string &fsr0);
+    void setChipType(lima::Maxipix::Version v, lima::Maxipix::Polarity p);
 
     void getBoardVersion(short& pcb /Out/, short& firmware /Out/) const;
     void getChipID(short port, long& id /Out/) const;
@@ -154,7 +154,7 @@ public:
     void getNbFrames(int& nb /Out/) const;
 
     void setSerialReadout(short port);
-    void setParalellReadout(std::vector<int> ports);
+    void setParallelReadout(std::vector<int> ports);
     void getReadoutMode(ReadoutMode& mode /Out/, std::vector<int>& ports /Out/) const;
 
     void setImageMode(ImageMode image);

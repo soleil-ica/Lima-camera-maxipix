@@ -26,7 +26,7 @@ namespace Maxipix {
 #define PY_ARRAY_UNIQUE_SYMBOL _LimaNumPy
 #include "numpy/arrayobject.h"
 
-#include "MaxipixDet.h"
+#include "MpxVersion.h"
 #include "PixelArray.h"
 #include <string>
 
@@ -37,7 +37,7 @@ class PixelConfigArray {
 
   public:
 
-    PixelConfigArray(Maxipix::MaxipixDet::Version);
+    PixelConfigArray(lima::Maxipix::Version);
     ~PixelConfigArray();
 
     void convert(std::string& /Out/);
@@ -57,7 +57,7 @@ class PixelConfigArray {
         if (nbBytes != 256*256) sipErr= 1;
 
         if (!sipErr) {
-	    sipCpp->maskArray= PyArray_BYTES(tmpObject);
+	    sipCpp->maskArray= (unsigned char*)PyArray_BYTES(tmpObject);
         }
     }
     Py_DECREF(tmpObject);
@@ -78,7 +78,7 @@ class PixelConfigArray {
         if (nbBytes != 256*256) sipErr= 1;
 
         if (!sipErr) {
-	    sipCpp->testArray= PyArray_BYTES(tmpObject);
+	    sipCpp->testArray= (unsigned char*)PyArray_BYTES(tmpObject);
         }
     }
     Py_DECREF(tmpObject);
@@ -99,7 +99,7 @@ class PixelConfigArray {
         if (nbBytes != 256*256) sipErr= 1;
 
         if (!sipErr) {
-	    sipCpp->lowArray= PyArray_BYTES(tmpObject);
+	    sipCpp->lowArray= (unsigned char*)PyArray_BYTES(tmpObject);
         }
     }
     Py_DECREF(tmpObject);
@@ -120,7 +120,7 @@ class PixelConfigArray {
         if (nbBytes != 256*256) sipErr= 1;
 
         if (!sipErr) {
-	    sipCpp->highArray= PyArray_BYTES(tmpObject);
+	    sipCpp->highArray= (unsigned char*)PyArray_BYTES(tmpObject);
         }
     }
     Py_DECREF(tmpObject);
