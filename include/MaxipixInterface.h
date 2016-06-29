@@ -179,6 +179,8 @@ public:
 
 	PriamAcq* priamAcq() {return m_cam.priamAcq(); }
 
+    //! get the camera object to access it directly from client
+    Camera& getCamera() { return m_cam;}	
 private:
 	class _ConfigThread;
 	friend class _ConfigThread;
