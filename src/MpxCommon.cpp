@@ -59,13 +59,13 @@ bool checkPath(std::string path) {
 	} else {
 		std::stringstream ss;
 		if (errno == ENOENT) {
-			ss << "<" << path << "> does not exist";
+			ss << "directory <" << path << "> does not exist";
 			throw LIMA_EXC(lima::CameraPlugin, Error, ss.str());
 		} else if (errno == ENOTDIR) {
 			ss << "<" << path << "> is not a directory";
 			throw LIMA_EXC(lima::CameraPlugin, Error, ss.str());
 		} else if (errno == EACCES) {
-			ss << "no read permission on <" << path << ">";
+			ss << "no read permission on directory <" << path << ">";
 			throw LIMA_EXC(lima::CameraPlugin, Error, ss.str());
 		}
 		return false;

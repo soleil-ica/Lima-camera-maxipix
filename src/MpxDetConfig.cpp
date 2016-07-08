@@ -34,6 +34,7 @@ using namespace lima;
 using namespace lima::Maxipix;
 
 MpxDetConfig::MpxDetConfig(std::string path, std::string name) : m_priamPorts(), m_dacs(NULL) {
+        DEB_MEMBER_FUNCT();
 	reset();
 	if (!path.empty()) {
 		setPath(path);

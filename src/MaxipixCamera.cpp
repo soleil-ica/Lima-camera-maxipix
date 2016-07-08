@@ -392,12 +392,9 @@ void Camera::loadConfig(const std::string& name, bool reconstruction) {
 
 void Camera::acqLoadConfig(const std::string& name, bool reconstruction) {
 	DEB_MEMBER_FUNCT();
-	try {
-		loadDetConfig(name, reconstruction);
-		loadChipConfig(name);
-		std::cout << "End of configuration, Maxipix is Ok !" << std::endl;
-	} catch (Exception & e) {
-	}
+	loadDetConfig(name, reconstruction);
+	loadChipConfig(name);
+	std::cout << "End of configuration, Maxipix is Ok !" << std::endl;
 }
 
 void Camera::loadDetConfig(const std::string& name, bool reconstruction) {
