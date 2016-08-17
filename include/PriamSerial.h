@@ -116,6 +116,8 @@ private:
 
 	mutable Espia::SerialLine m_espia_serial;
 	mutable Mutex m_mutex;
+
+	static const double ResetLinkWaitTime;
 };
 
 }

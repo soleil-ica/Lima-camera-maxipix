@@ -74,12 +74,32 @@ const PriamSerial::PriamCodeType PriamSerial::PriamSerTxCode[] = { {
 		(short) PSER_MATRIX, "matrix", 0x10, 114688, 0x90, 114688 }, {
 		(short) PSER_FSR, "FSR", 0x91, 32, 0xff, 3 } };
 
+const double PriamSerial::ResetLinkWaitTime = 5;
+
 PriamSerial::PriamSerial(Espia::SerialLine &espia_serial) :
 		m_espia_serial(espia_serial), m_mutex(MutexAttr::Normal) {
 	DEB_CONSTRUCTOR();
 	ostringstream os;
 	os << "Dev#" << espia_serial.getDev().getDevNb();
 	DEB_SET_OBJ_NAME(os.str());
+
+	int chan_up_led;
+	espia_serial.getDev().getChanUpLed(chan_up_led);
+	// Sometimes the link can be down for any reason, so try first to restart it
+	if (!chan_up_led) {
+		DEB_WARNING() << "Aurora link down. Forcing a link reset!";
+		espia_serial.getDev().resetLink();
+		DEB_TRACE() << "Sleeping additional "
+			    << DEB_VAR1(Maxipix::PriamSerial::ResetLinkWaitTime);
+		Sleep(ResetLinkWaitTime);
+	}
+
+
+	DEB_TRACE() << "Flushing serial line ...";
+	// In case of remaining chars in TX (after detector disconnected and tries of connection),
+	// Espia sends those chars to the priam which can answer on RX.
+	// Making no more synchro in between cmds and answers. So flush is always mandatory for fresh start!!
+	m_espia_serial.flush();
 }
 
 PriamSerial::~PriamSerial() {
