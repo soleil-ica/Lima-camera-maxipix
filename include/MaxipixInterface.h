@@ -171,8 +171,8 @@ public:
 	void setPath(const std::string& path){m_cam.setPath(path);}
 	void loadConfig(const std::string& name, bool reconstruction = true);
 
-	void getFillMode(MaxipixReconstruction::Type& type) {m_cam.setFillMode(type);}
-	void setFillMode(MaxipixReconstruction::Type type) {m_cam.getFillMode(type);}
+	void getFillMode(MaxipixReconstruction::Type& type) {m_cam.getFillMode(type);}
+	void setFillMode(MaxipixReconstruction::Type type) {m_cam.setFillMode(type);}
 
 	void setEnergy(double energy){m_cam.setEnergy(energy);}
 	void getEnergy(double& energy){m_cam.getEnergy(energy);}

@@ -108,8 +108,10 @@ public:
 
 	PriamAcq* priamAcq() {return &m_priamAcq; }
 
-	MaxipixReconstruction* getReconstructionTask();
+	MaxipixReconstruction* getReconstructionTask(){return m_reconstructionTask;};
 
+
+	
 	// Buffer control object
 	HwBufferCtrlObj* getBufferCtrlObj();
 
@@ -126,6 +128,7 @@ private:
 	void setReconstructionActive(bool active);
 	void loadChipConfig(const std::string& name);
 	void applyPixelConfig(int chipid);
+	MaxipixReconstruction* createReconstructionTask();
 
 
 	class AcqEndCallback: public Espia::AcqEndCallback {

@@ -338,7 +338,7 @@ void Camera::setChipsLayout(const MaxipixReconstruction::Layout& layout) {
 	m_layout = layout;
 }
 
-MaxipixReconstruction* Camera::getReconstructionTask() {
+MaxipixReconstruction* Camera::createReconstructionTask() {
 	DEB_MEMBER_FUNCT();
 	MaxipixReconstruction *reconstruction = NULL;
 	switch (m_layout) {
@@ -347,13 +347,13 @@ MaxipixReconstruction* Camera::getReconstructionTask() {
 		break;
 	case MaxipixReconstruction::L_FREE:
 	case MaxipixReconstruction::L_GENERAL:
-		reconstruction = new MaxipixReconstruction(m_layout, MaxipixReconstruction::RAW);
+	        reconstruction = new MaxipixReconstruction(m_layout, m_reconstructType);
 		reconstruction->setChipsPosition(m_positions);
 		m_size = reconstruction->getImageSize();
 		break;
 	case MaxipixReconstruction::L_2x2:
 	case MaxipixReconstruction::L_5x1:
-		reconstruction = new MaxipixReconstruction(m_layout, MaxipixReconstruction::RAW);
+	        reconstruction = new MaxipixReconstruction(m_layout, m_reconstructType);
 		reconstruction->setXnYGapSpace(m_xgap, m_ygap);
 		m_size = reconstruction->getImageSize();
 		break;
@@ -450,7 +450,7 @@ void Camera::loadDetConfig(const std::string& name, bool reconstruction) {
 void Camera::setReconstructionActive(bool active) {
 	DEB_MEMBER_FUNCT();
 	// get the default reconstruction task (object) set from the read config parameters
-	if (!m_reconstructionTask) {
+	if (m_reconstructionTask) {
 		delete m_reconstructionTask;
 	}
 
@@ -479,7 +479,7 @@ void Camera::setReconstructionActive(bool active) {
 	
 	// must be called even if reconstruction is inactive or NONE,
 	// it gets the image size updating by callback
-	m_reconstructionTask = getReconstructionTask();
+	m_reconstructionTask = createReconstructionTask();
 	std::string d_model;
 	getDetectorModel(d_model);
 
@@ -489,7 +489,7 @@ void Camera::setReconstructionActive(bool active) {
 	       std::cout << "Image reconstruction is switched ON, model:" << d_model << std::endl;
 	} else {
 	        // no reconstruction, tell the user why
-		if (active && m_reconstructionTask != NULL) {
+		if (active && m_reconstructionTask == NULL) {
 		  std::cout << "Image reconstruction is switched OFF (active=true, config=off), model: " << d_model <<std::endl;
 		} else {
 		  std::cout << "Image reconstruction is switched OFF (active=false), model: " << d_model <<std::endl;
