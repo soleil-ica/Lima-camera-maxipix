@@ -5,3 +5,4 @@
 core.*
 test
 test2
+/target/
