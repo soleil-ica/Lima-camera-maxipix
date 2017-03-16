@@ -19,6 +19,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 ############################################################################
+LIMA_DIR := $(shell pwd)/../../..
+LIMA_ESPIA_DIR := $(LIMA_DIR)/camera/common/espia
+
+include $(LIMA_DIR)/config.inc
+include $(LIMA_DIR)/control/control.inc
+include $(LIMA_ESPIA_DIR)/include/espia.inc
 
 maxipix-objs := PriamSerial.o PriamAcq.o PixelArray.o
 maxipix-objs += MaxipixReconstruction.o MaxipixCamera.o MaxipixInterface.o   
@@ -26,18 +32,12 @@ maxipix-objs += MpxDetConfig.o MpxCommon.o MpxChipConfig.o MpxDacs.o
 
 SRCS = $(maxipix-objs:.o=.cpp)
 
-include ../../common/espia/include/espia.inc
-
 INCLUDES = -I../include \
-		   -I../tools/src \
-           -I../../../common/include \
-           -I../../../hardware/include \
-           -I../../common/espia/include \
-           -I$(ESPIA_DRV_INCL) \
-	       -I../../../third-party/Processlib/core/include \
-	       -I../../../third-party/libconfig/lib
+	   -I../tools/src \
+           -I$(LIMA_ESPIA_DIR)/include \
+           -I$(ESPIA_DRV_INCL)
 
-CXXFLAGS += $(INCLUDES) -fPIC -Wall -pthread -g
+CXXFLAGS += $(INCLUDES) $(CT_CXXFLAGS)
 #CXXFLAGS += -std=c++0x
 
 all: tools Maxipix.o 

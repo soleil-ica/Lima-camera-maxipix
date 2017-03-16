@@ -19,27 +19,25 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 ############################################################################
-include ../../../../config.inc
-include ../../../common/espia/include/espia.inc
+LIMA_DIR := $(shell pwd)/../../../..
+LIMA_ESPIA_DIR := $(LIMA_DIR)/camera/common/espia
+
+include $(LIMA_DIR)/config.inc
+include $(LIMA_DIR)/control/control.inc
+include $(LIMA_ESPIA_DIR)/include/espia.inc
 
 SRCS = test.cpp  test2.cpp
 
 CXXFLAGS = -I../../include \
 	   -I../../tools/cpp \
-           -DWITH_SPS_IMAGE -DWITH_CONFIG \
-	   -Wall -pthread -g
+           $(CT_CXXFLAGS)
 
 INCLUDES = -I../../include \
            -I../../tools/src \
-           -I../../../../common/include \
-           -I../../../../control/include \
-           -I../../../../hardware/include \
-           -I../../../common/espia/include \
-           -I$(ESPIA_DRV_INCL) \
-           -I../../../../third-party/Processlib/core/include \
-           -I../../../../third-party/libconfig/lib
+           -I$(LIMA_ESPIA_DIR)/include \
+           -I$(ESPIA_DRV_INCL)
 
-LDFLAGS = -pthread -L../../../../build  -L../../../../third-party/Processlib/build -L$(ESPIA_DRV_LIB)
+LDFLAGS = -pthread -L$(LIMA_DIR)/build  -L$(LIMA_DIR)/third-party/Processlib/build -L$(ESPIA_DRV_LIB)
 LDLIBS = -llimacore  -lprocesslib -llimaespia -lespia 
 
 test-progs = test test2

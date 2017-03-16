@@ -3,5 +3,5 @@
 *~
 *.so
 core.*
-test
-test2
+test/src/test
+test/src/test2
