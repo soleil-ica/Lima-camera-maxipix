@@ -32,12 +32,9 @@ maxipix-objs += MpxDetConfig.o MpxCommon.o MpxChipConfig.o MpxDacs.o
 
 SRCS = $(maxipix-objs:.o=.cpp)
 
-INCLUDES = -I../include \
-	   -I../tools/src \
-           -I$(LIMA_ESPIA_DIR)/include \
-           -I$(ESPIA_DRV_INCL)
-
-CXXFLAGS += $(INCLUDES) $(CT_CXXFLAGS)
+CPPFLAGS = -I../include -I../tools/src -I$(LIMA_ESPIA_DIR)/include \
+	   $(CT_CPPFLAGS) -I$(ESPIA_DRV_INCL)
+CXXFLAGS = $(CT_CXXFLAGS)
 #CXXFLAGS += -std=c++0x
 
 all: tools Maxipix.o 
@@ -52,7 +49,7 @@ clean:
 	rm -f Maxipix.o $(maxipix-objs) *.P
 
 %.o : %.cpp
-	$(COMPILE.cpp) -MD $(CXXFLAGS) -o $@ $<
+	$(COMPILE.cpp) $(CPPFLAGS) -MD $(CXXFLAGS) -o $@ $<
 	@cp $*.d $*.P; \
 	sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' \
 	-e '/^$$/ d' -e 's/$$/ :/' < $*.d >> $*.P; \
@@ -62,4 +59,4 @@ clean:
 
 .PHONY: check-syntax
 check-syntax:
-	$(CXX) -Wall -Wextra -fsyntax-only $(CXXFLAGS) $(CHK_SOURCES)
+	$(CXX) $(CPPFLAGS) -Wextra -fsyntax-only $(CXXFLAGS) $(CHK_SOURCES)

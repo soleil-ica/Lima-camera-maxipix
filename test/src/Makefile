@@ -28,33 +28,32 @@ include $(LIMA_ESPIA_DIR)/include/espia.inc
 
 SRCS = test.cpp  test2.cpp
 
-CXXFLAGS = -I../../include \
-	   -I../../tools/cpp \
-           $(CT_CXXFLAGS)
+CPPFLAGS = -I../../include -I../../tools/src -I$(LIMA_ESPIA_DIR)/include \
+	   $(CT_CPPFLAGS) -I$(ESPIA_DRV_INCL)
+CXXFLAGS = $(CT_CXXFLAGS)
+DEPLIBS = $(CT_DEPLIBS) \
+	  $(LIMA_DIR)/build,limacore \
+	  $(LIMA_DIR)/build,limaespia \
+	  $(LIMA_DIR)/build,limamaxipix
+LDFLAGS = $(CT_LDFLAGS) $(call lib-depflags,$(DEPLIBS)) -L$(ESPIA_DRV_LIB)
+LDLIBS = $(CT_LDLIBS) $(call lib-deplibs,$(DEPLIBS)) -lespia
 
-INCLUDES = -I../../include \
-           -I../../tools/src \
-           -I$(LIMA_ESPIA_DIR)/include \
-           -I$(ESPIA_DRV_INCL)
-
-LDFLAGS = -pthread -L$(LIMA_DIR)/build  -L$(LIMA_DIR)/third-party/Processlib/build -L$(ESPIA_DRV_LIB)
-LDLIBS = -llimacore  -lprocesslib -llimaespia -lespia 
 
 test-progs = test test2
 
 all: 	$(test-progs)
 
-test:		test.o ../../tools/src/libINIReader.o
+test:		test.o
 	$(CXX) $(LDFLAGS) -o $@ $+ $(LDLIBS)
 
-test2:		test2.o ../../src/Maxipix.o
+test2:		test2.o
 	$(CXX) $(LDFLAGS) -o $@ $+ $(LDLIBS)
 
 clean:
 	rm -f *.o *.P test test2
 
 %.o : %.cpp
-	$(COMPILE.cpp) -MD $(CXXFLAGS) $(INCLUDES) -o $@ $<
+	$(COMPILE.cpp) $(CPPFLAGS) -MD $(CXXFLAGS) -o $@ $<
 	@cp $*.d $*.P; \
 	sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' \
 	-e '/^$$/ d' -e 's/$$/ :/' < $*.d >> $*.P; \
