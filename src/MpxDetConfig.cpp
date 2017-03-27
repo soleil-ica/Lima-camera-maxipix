@@ -125,19 +125,6 @@ void MpxDetConfig::parseDetModuleSection(INIReader& reader) {
 	DEB_MEMBER_FUNCT();
 	std::string section = "detmodule";
 
-	reader.Get(section, "connection", "Unknown"); // not used
-	reader.Get(section, "sensor", "Unknown"); // not used
-	reader.GetInteger(section, "bias", -1); // not used
-	reader.GetInteger(section, "xpixels", -1); // not used
-	reader.GetInteger(section, "ypixels", -1); // not used
-	reader.GetInteger(section, "pitch", -1); // not used
-	reader.GetInteger(section, "xfirst", -1); // not used
-	reader.GetInteger(section, "yfirst", -1); // not used
-	reader.Get(section, "name_1", "Unknown"); // not used
-	reader.Get(section, "name_2", "Unknown"); // not used
-	reader.Get(section, "name_3", "Unknown"); // not used
-	reader.Get(section, "name_4", "Unknown"); // not used
-
 	std::string type = reader.Get(section, "asic", "Unknown");
 	convert_from_string(type, m_asicType); // Checks for validity
 	DEB_TRACE() << DEB_VAR2(type, m_asicType);
@@ -178,27 +165,27 @@ void MpxDetConfig::parseLayoutSection(INIReader& reader) {
 	convert_from_string(layoutStr, m_layout); // checks for validity
 	DEB_TRACE() << DEB_VAR1(m_layout);
 
-	// layout paramters for standard monolithic maxipix 2x2 or 5x5 with gap reconstruction
+	// layout paramters for standard monolithic maxipix 2x2 or 5x1 with gap reconstruction
 	if (m_layout == MaxipixReconstruction::L_2x2  || m_layout == MaxipixReconstruction::L_5x1) {
-		// xchips, ychips and xgap are mandatory
-		Range<int>range = Range<int>(1,6);
-		getMandatoryParam(reader, section, "xchips", m_xchips, range);
-		range = Range<int>(1,2);
-		getMandatoryParam(reader, section, "ychips", m_ychips, range);
-		range = Range<int>(1, 5);
+	        // xgap, ygap are mandatory
+	        Range<int>range = Range<int>(0,4);
 		getMandatoryParam(reader, section, "xgap", m_xgap, range);
-		getMandatoryParam(reader, section, "ygap", m_ygap, range);
+		if (m_layout == MaxipixReconstruction::L_5x1) {
+		        m_ygap = 0; 
+			m_xchips = 5; m_ychips = 1;
+			if (m_nchips != 5) {
+				THROW_HW_ERROR(Error) << "Layout is L_5x1 but in <detmodule> section nchips != 5";
+			}
+		} else {
+		        getMandatoryParam(reader, section, "ygap", m_ygap, range);
+		        m_ychips = m_xchips = 2;
+			if (m_nchips != 4) {
+				THROW_HW_ERROR(Error) << "Layout is L_2x2 but in <detmodule> section nchips != 4";
+			}
+		}
 
-		reader.Get(section, "pos_1", "00"); // not used
-		reader.Get(section, "pos_2", "00"); // not used
-		reader.Get(section, "pos_3", "00"); // not used
-		reader.Get(section, "pos_4", "00"); // not used
-		reader.GetInteger(section, "rot_1",-1); // not used
-		reader.GetInteger(section, "rot_2",-1); // not used
-		reader.GetInteger(section, "rot_3",-1); // not used
-		reader.GetInteger(section, "rot_4",-1); // not used
-		// layout paramters for general reconstruction, position  are mandatory
-		// included L_FREE, a faster reconstruction when there is only rotation on chips
+	// layout paramters for general reconstruction, position  are mandatory
+	// included L_FREE, a faster reconstruction when there is only rotation on chips
 	} else if (m_layout == MaxipixReconstruction::L_GENERAL || m_layout == MaxipixReconstruction::L_FREE) {
 			parseLayoutGeneralSection(reader);
 	} else if (m_layout == MaxipixReconstruction::L_NONE) {
