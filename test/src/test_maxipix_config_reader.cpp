@@ -27,7 +27,7 @@ int main() {
 	} else {
 		cout << "Unable to open file";
 	}
-	std::string fname  = "./tpxatl25.cfg";
+	std::string fname  = "../../mydet.cfg";
 	INIReader reader(fname);
     if (reader.ParseError() < 0) {
 		std::cout << "I/O error while reading file." << std::endl;

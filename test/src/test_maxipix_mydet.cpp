@@ -25,8 +25,8 @@ int main()
       //DebParams::setTypeFlags(DebParams::AllFlags);
       //DebParams::setFormatFlags(DebParams::AllFlags);
 
-      string path = "/users/blissadm/local/maxipix/tpxatl25/";
-      string filename = "tpxatl25";
+      string path = "../../config";
+      string filename = "mydet";
 
       m_camera = new Camera(0, path, filename, true);
       m_interface = new Interface(*m_camera);
