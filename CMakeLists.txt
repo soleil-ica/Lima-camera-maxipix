@@ -96,3 +96,6 @@ IF(COMPILE_SIP)
 
     INSTALL(FILES python/__init__.py DESTINATION "${PYTHON_SITE_PACKAGES_DIR}/Lima/Maxipix")
 ENDIF()
+
+# test prgs
+ADD_SUBDIRECTORY(test)

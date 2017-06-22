@@ -13,7 +13,7 @@ import time
 
 #DebParams.setModuleFlags(Ac0xffffb7)
 
-cam = Maxipix.Camera(0,'../../config', 'mydet', True)
+cam = Maxipix.Camera(0,'config', 'tpxatl25', True)
 hwint = Maxipix.Interface(cam)
   
 control = Core.CtControl(hwint)

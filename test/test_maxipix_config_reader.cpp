@@ -11,7 +11,7 @@ using namespace std;
 
 int main() {
 	string line;
-	ifstream file("../config/mydet_chip_1.edf");
+	ifstream file("config/mydet_chip_1.edf");
 	if (file.is_open()) {
 		char *hdr = new char[1024];
 		file.seekg(0, ios::beg);
@@ -27,7 +27,7 @@ int main() {
 	} else {
 		cout << "Unable to open file";
 	}
-	std::string fname  = "../../mydet.cfg";
+	std::string fname  = "config/tpxatl25.cfg";
 	INIReader reader(fname);
     if (reader.ParseError() < 0) {
 		std::cout << "I/O error while reading file." << std::endl;
@@ -41,14 +41,14 @@ int main() {
 	assert(reader.GetInteger(section, "buffanaloga", -1) == 127);
 	assert(reader.GetInteger(section, "buffanalogb", -1) == 127);
 	assert(reader.GetInteger(section, "ctpr", -1) == 1);
-	assert(reader.GetInteger(section, "disc", -1) == 110);
+	assert(reader.GetInteger(section, "disc", -1) == 127);
 	assert(reader.GetInteger(section, "fbk", -1) == 128);
 	assert(reader.GetInteger(section, "gnd", -1) == 80);
 	assert(reader.GetInteger(section, "hist", -1) == 0);
 	assert(reader.GetInteger(section, "ikrum", -1) == 5);
-	assert(reader.GetInteger(section, "preamp",-1) == 240);
+	assert(reader.GetInteger(section, "preamp",-1) == 255);
 	assert(reader.GetInteger(section, "reflvds",-1) == 128);
-	assert(reader.GetInteger(section, "thl",-1) == 7437);
+	assert(reader.GetInteger(section, "thl",-1) == 7572);
 	assert(reader.GetInteger(section, "ths",-1) == 60);
 	assert(reader.GetInteger(section, "vcas",-1) == 130);
 
@@ -74,22 +74,22 @@ int main() {
 	assert(reader.Get(section, "name_2","Unknown") == "W15A6");
 	assert(reader.Get(section, "name_3","Unknown") == "W15G7");
 	assert(reader.Get(section, "name_4","Unknown") == "W15L8");
-	assert(reader.GetInteger(section, "energy",-1) == 8);
+	assert(reader.GetInteger(section, "energy",-1) == 10);
 
 	section = "calibration";
 	assert(reader.Get(section, "mode","Unknown") == "SPM");
 	assert(reader.GetInteger(section, "energy",-1) == 5);
-	assert(reader.GetInteger(section, "thlnoise_1",-1) == 7530);
-	assert(reader.GetInteger(section, "thlnoise_2",-1) == 7580);
-	assert(reader.GetInteger(section, "thlnoise_3",-1) == 7558);
-	assert(reader.GetInteger(section, "thlnoise_4",-1) == 7550);
-	assert(reader.GetInteger(section, "thlxray_1",-1) == 7400);
-	assert(reader.GetInteger(section, "thlxray_2",-1) == 7400);
-	assert(reader.GetInteger(section, "thlxray_3",-1) == 7400);
-	assert(reader.GetInteger(section, "thlxray_4",-1) == 7400);
+	assert(reader.GetInteger(section, "thlnoise_1",-1) == 7575);
+	assert(reader.GetInteger(section, "thlnoise_2",-1) == 7626);
+	assert(reader.GetInteger(section, "thlnoise_3",-1) == 7586);
+	assert(reader.GetInteger(section, "thlnoise_4",-1) == 7585);
+	assert(reader.GetInteger(section, "thlxray_1",-1) == 7425);
+	assert(reader.GetInteger(section, "thlxray_2",-1) == 7526);
+	assert(reader.GetInteger(section, "thlxray_3",-1) == 7486);
+	assert(reader.GetInteger(section, "thlxray_4",-1) == 7485);
 
 	section = "layout_standard";
-	assert(reader.Get(section, "layout","Unknown") == "L_GENERAL");
+	assert(reader.Get(section, "layout","Unknown") == "L_2x2");
 	assert(reader.GetInteger(section, "xchips",-1) == 2);
 	assert(reader.GetInteger(section, "ychips",-1) == 2);
 	assert(reader.GetInteger(section, "xgap",-1) == 4);
