@@ -29,13 +29,4 @@ ADD_EXECUTABLE(test_maxipix_acq ${maxipix_test2_srcs})
 TARGET_LINK_LIBRARIES(test_maxipix_config_reader limacore limamaxipix)
 TARGET_LINK_LIBRARIES(test_maxipix_acq limacore limamaxipix)
 
-CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/config/mydet_chip_1.edf config/mydet_chip_1.edf COPYONLY)
-CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/config/tpxatl25_chip_1.bpc
-config/tpxatl25_chip_1.bpc COPYONLY)
-CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/config/tpxatl25_chip_2.bpc
-config/tpxatl25_chip_2.bpc COPYONLY)
-CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/config/tpxatl25_chip_3.bpc
-config/tpxatl25_chip_3.bpc COPYONLY)
-CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/config/tpxatl25_chip_4.bpc
-config/tpxatl25_chip_4.bpc COPYONLY)
-CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/config/tpxatl25.cfg config/tpxatl25.cfg COPYONLY)
+FILE(COPY config/ DESTINATION config/)
