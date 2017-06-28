@@ -19,38 +19,36 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 ############################################################################
+SET(NAME "maxipix")
 
-SET(maxipix_srcs src/PriamSerial.cpp  src/PriamAcq.cpp
+SET(${NAME}_srcs src/PriamSerial.cpp  src/PriamAcq.cpp
 	 src/PixelArray.cpp src/MaxipixReconstruction.cpp
 	 src/MaxipixCamera.cpp src/MaxipixInterface.cpp
 	 src/MpxDetConfig.cpp src/MpxCommon.cpp src/MpxChipConfig.cpp src/MpxDacs
 	 tools/src/INIReader.cpp tools/ini.c)
 
-FILE(STRINGS "VERSION" maxipix_vers)
-ADD_LIBRARY(limamaxipix SHARED ${maxipix_srcs})
+ADD_LIBRARY(lima${NAME} SHARED ${${NAME}_srcs})
 
-TARGET_INCLUDE_DIRECTORIES(limamaxipix PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
-TARGET_INCLUDE_DIRECTORIES(limamaxipix PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/tools/src")
+TARGET_INCLUDE_DIRECTORIES(lima${NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
+TARGET_INCLUDE_DIRECTORIES(lima${NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/tools/src")
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../common/espia/cmake ${CMAKE_MODULE_PATH})
 include(FindEspiaDrv)
 
 #set paths for espia driver and limaespialib and include files
-TARGET_INCLUDE_DIRECTORIES(limamaxipix PUBLIC "${ESPIA_DRV_INCLUDE_DIR}")
-TARGET_INCLUDE_DIRECTORIES(limamaxipix PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/../common/espia/include")
+TARGET_INCLUDE_DIRECTORIES(lima${NAME} PUBLIC "${ESPIA_DRV_INCLUDE_DIR}")
+TARGET_INCLUDE_DIRECTORIES(lima${NAME}PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/../common/espia/include")
 
 LINK_DIRECTORIES("${CMAKE_CURRENT_SOURCE_DIR}/../common/espia")
 
-TARGET_LINK_LIBRARIES(limamaxipix limacore)
-TARGET_LINK_LIBRARIES(limamaxipix ${ESPIA_DRV_LIB})
-TARGET_LINK_LIBRARIES(limamaxipix limaespia)
+TARGET_LINK_LIBRARIES(lima${NAME} limacore)
+TARGET_LINK_LIBRARIES(lima${NAME} ${ESPIA_DRV_LIB})
+TARGET_LINK_LIBRARIES(lima${NAME} limaespia)
 
-SET_TARGET_PROPERTIES(limamaxipix PROPERTIES VERSION ${maxipix_vers} SOVERSION "1")
+include(CameraVERSION)
+INSTALL(TARGETS lima${NAME} LIBRARY DESTINATION lib)
 
-INSTALL(TARGETS limamaxipix LIBRARY DESTINATION lib)
-
-IF(COMPILE_SIP)
-    SET(NAME "maxipix")
+IF(LIMA_ENABLE_PYTHON)
     SET(INCLUDES)
     FILE(GLOB sipfiles RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}/sip" "${CMAKE_CURRENT_SOURCE_DIR}/sip/*.sip")
     FOREACH(sipfile ${sipfiles})
