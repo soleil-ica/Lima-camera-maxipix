@@ -51,51 +51,15 @@ INSTALL(TARGETS limamaxipix LIBRARY DESTINATION lib)
 
 IF(COMPILE_SIP)
     SET(NAME "maxipix")
-    SET(INCLUDES)
-    FILE(GLOB sipfiles RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}/sip" "${CMAKE_CURRENT_SOURCE_DIR}/sip/*.sip")
-    FOREACH(sipfile ${sipfiles})
-        SET(INCLUDES 
-"${INCLUDES} 
-%Include ${sipfile}"
-)
-    ENDFOREACH()
-
     SET(IMPORTS
-"%Import limacore.sip
-%Import limaespia.sip"
-)
-
-    IF(SIP_VERSION_STR VERSION_LESS "4.12")
-    	CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/sip/limamodules_before_4_12.sip.in sip/limamaxipix.sip)
-    ELSE()
-    	CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/sip/limamodules.sip.in sip/limamaxipix.sip)
-    ENDIF()
-
-    SET(SIP_CONCAT_PARTS 1)
+"%Import limaespia.sip")
     SET(SIP_INCLUDES ${SIP_INCLUDES}
-        "${CMAKE_SOURCE_DIR}/third-party/Processlib/sip"
-        "${CMAKE_BINARY_DIR}/sip/core"
-        "${CMAKE_SOURCE_DIR}/third-party/Processlib/tasks/sip"
-        "${CMAKE_SOURCE_DIR}/common/sip"
-        "${CMAKE_SOURCE_DIR}/hardware/sip"
-        "${CMAKE_SOURCE_DIR}/control/sip"
-        "${CMAKE_SOURCE_DIR}/control/software_operation/sip"
-        "${CMAKE_CURRENT_SOURCE_DIR}/sip"
-        "${CMAKE_CURRENT_SOURCE_DIR}/../common/espia/sip"	
+        "${CMAKE_CURRENT_SOURCE_DIR}/../common/espia/sip"
 	"${CMAKE_BINARY_DIR}/camera/common/espia/sip")
-    set(SIP_DISABLE_FEATURES WITH_CONFIG)
-    set_source_files_properties(${CMAKE_CURRENT_BINARY_DIR}/sip/lima${NAME}.sip PROPERTIES OBJECT_DEPENDS ${sipfiles})
-    set(SIP_CHECK_EXC ON)
-    ADD_SIP_PYTHON_MODULE(limamaxipix ${CMAKE_CURRENT_BINARY_DIR}/sip/limamaxipix.sip)
-    TARGET_INCLUDE_DIRECTORIES(python_module_limamaxipix PRIVATE
-                               ${PYTHON_INCLUDE_DIRS}
-                               "${CMAKE_SOURCE_DIR}/sip"
-                               "${CMAKE_SOURCE_DIR}/sip/core"
-			       "${CMAKE_SOURCE_DIR}/third-party/Processlib/sip")
-    TARGET_LINK_LIBRARIES(python_module_limamaxipix limamaxipix)
-
+    INCLUDE(CameraRunSIP)
     INSTALL(FILES python/__init__.py DESTINATION "${PYTHON_SITE_PACKAGES_DIR}/Lima/Maxipix")
 ENDIF()
 
-# test prgs
-ADD_SUBDIRECTORY(test)
+IF(COMPILE_TEST)
+	ADD_SUBDIRECTORY(test/)
+ENDIF()
