@@ -19,47 +19,46 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 ############################################################################
+set(NAME "maxipix")
 
-SET(maxipix_srcs src/PriamSerial.cpp  src/PriamAcq.cpp
+set(${NAME}_srcs src/PriamSerial.cpp  src/PriamAcq.cpp
 	 src/PixelArray.cpp src/MaxipixReconstruction.cpp
 	 src/MaxipixCamera.cpp src/MaxipixInterface.cpp
 	 src/MpxDetConfig.cpp src/MpxCommon.cpp src/MpxChipConfig.cpp src/MpxDacs
 	 tools/src/INIReader.cpp tools/ini.c)
 
-FILE(STRINGS "VERSION" maxipix_vers)
-ADD_LIBRARY(limamaxipix SHARED ${maxipix_srcs})
+add_library(lima${NAME} SHARED ${${NAME}_srcs})
 
-TARGET_INCLUDE_DIRECTORIES(limamaxipix PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
-TARGET_INCLUDE_DIRECTORIES(limamaxipix PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/tools/src")
+target_include_directories(lima${NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
+target_include_directories(lima${NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/tools/src")
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../common/espia/cmake ${CMAKE_MODULE_PATH})
 include(FindEspiaDrv)
 
 #set paths for espia driver and limaespialib and include files
-TARGET_INCLUDE_DIRECTORIES(limamaxipix PUBLIC "${ESPIA_DRV_INCLUDE_DIR}")
-TARGET_INCLUDE_DIRECTORIES(limamaxipix PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/../common/espia/include")
+target_include_directories(lima${NAME} PUBLIC "${ESPIA_DRV_INCLUDE_DIR}")
+target_include_directories(lima${NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/../common/espia/include")
 
-LINK_DIRECTORIES("${CMAKE_CURRENT_SOURCE_DIR}/../common/espia")
+link_directories("${CMAKE_CURRENT_SOURCE_DIR}/../common/espia")
 
-TARGET_LINK_LIBRARIES(limamaxipix limacore)
-TARGET_LINK_LIBRARIES(limamaxipix ${ESPIA_DRV_LIB})
-TARGET_LINK_LIBRARIES(limamaxipix limaespia)
+target_link_libraries(lima${NAME} limacore)
+target_link_libraries(lima${NAME} ${ESPIA_DRV_LIB})
+target_link_libraries(lima${NAME} limaespia)
 
-SET_TARGET_PROPERTIES(limamaxipix PROPERTIES VERSION ${maxipix_vers} SOVERSION "1")
+limatools_set_library_soversion(lima${NAME} "VERSION")
+install(TARGETS lima${NAME} LIBRARY DESTINATION lib)
 
-INSTALL(TARGETS limamaxipix LIBRARY DESTINATION lib)
-
-IF(COMPILE_SIP)
-    SET(NAME "maxipix")
-    SET(IMPORTS
+if(LIMA_ENABLE_PYTHON)
+    set(NAME "maxipix")
+    set(IMPORTS
 "%Import limaespia.sip")
-    SET(SIP_INCLUDES ${SIP_INCLUDES}
+    set(SIP_INCLUDES ${SIP_INCLUDES}
         "${CMAKE_CURRENT_SOURCE_DIR}/../common/espia/sip"
 	"${CMAKE_BINARY_DIR}/camera/common/espia/sip")
-    INCLUDE(CameraRunSIP)
-    INSTALL(FILES python/__init__.py DESTINATION "${PYTHON_SITE_PACKAGES_DIR}/Lima/Maxipix")
-ENDIF()
+    limatools_run_sip_for_camera(${NAME}) 
+    install(FILES python/__init__.py DESTINATION "${PYTHON_SITE_PACKAGES_DIR}/Lima/Maxipix")
+endif()
 
-IF(COMPILE_TEST)
-	ADD_SUBDIRECTORY(test/)
-ENDIF()
+if(LIMA_ENABLE_TESTS)
+	add_subdirectory(test)
+endif()
