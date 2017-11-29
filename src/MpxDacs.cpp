@@ -24,6 +24,7 @@
 #include "lima/Debug.h"
 #include "lima/Exceptions.h"
 #include "lima/MiscUtils.h"
+#include "MpxCommon.h"
 #include "MpxDacs.h"
 
 using namespace lima;

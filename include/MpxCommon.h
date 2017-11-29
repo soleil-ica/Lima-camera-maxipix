@@ -22,6 +22,7 @@
 #ifndef MPXCOMMON_H
 #define MPXCOMMON_H
 
+#include <unistd.h>
 #include <ostream>
 #include "lima/Debug.h"
 #include "lima/Exceptions.h"

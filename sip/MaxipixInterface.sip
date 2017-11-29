@@ -46,7 +46,7 @@ class Interface : HwInterface
 	virtual void getStatus(HwInterface::StatusType& status /Out/);
 	virtual int getNbHwAcquiredFrames();
 
-	void getFillMode(Maxipix::MaxipixReconstruction::Type& type /Out/) const;
+	void getFillMode(Maxipix::MaxipixReconstruction::Type& type /Out/);
 	void setFillMode(Maxipix::MaxipixReconstruction::Type type);
 	void setPath(const std::string& path);
 	void loadConfig(const std::string& name, bool reconstruction=true);

@@ -1,3 +1,4 @@
+#include <unistd.h>
 #include "lima/CtControl.h"
 #include "lima/CtSaving.h"
 #include "lima/CtAcquisition.h"
