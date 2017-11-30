@@ -55,6 +55,12 @@ if(LIMA_ENABLE_PYTHON)
     set(SIP_INCLUDES ${SIP_INCLUDES}
         "${CMAKE_CURRENT_SOURCE_DIR}/../common/espia/sip"
 	"${CMAKE_BINARY_DIR}/camera/common/espia/sip")
+    if(SIP_VERSION_STR VERSION_LESS "4.12")
+        configure_file(${CMAKE_CURRENT_SOURCE_DIR}/sip/PixelArray_before_4_12.sip.in sip/PixelArray.sip)
+    else()
+        configure_file(${CMAKE_CURRENT_SOURCE_DIR}/sip/PixelArray.sip.in sip/PixelArray.sip)
+    endif()
+
     limatools_run_sip_for_camera(${NAME}) 
     install(FILES python/__init__.py DESTINATION "${PYTHON_SITE_PACKAGES_DIR}/Lima/Maxipix")
 endif()
