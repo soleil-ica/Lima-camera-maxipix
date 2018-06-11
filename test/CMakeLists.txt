@@ -1,7 +1,7 @@
 ############################################################################
 # This file is part of LImA, a Library for Image Acquisition
 #
-# Copyright (C) : 2009-2011
+# Copyright (C) : 2009-2017
 # European Synchrotron Radiation Facility
 # BP 220, Grenoble 38043
 # FRANCE
@@ -19,7 +19,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 ############################################################################
-src-dirs  = src tools/src
-test-dirs = test/src
 
-include ../../global.inc
+SET(maxipix_test1_srcs test_maxipix_config_reader.cpp)
+SET(maxipix_test2_srcs test_maxipix_acq.cpp)
+
+ADD_EXECUTABLE(test_maxipix_config_reader ${maxipix_test1_srcs})
+ADD_EXECUTABLE(test_maxipix_acq ${maxipix_test2_srcs})
+
+TARGET_LINK_LIBRARIES(test_maxipix_config_reader limacore limamaxipix)
+TARGET_LINK_LIBRARIES(test_maxipix_acq limacore limamaxipix)
+
+FILE(COPY config/ DESTINATION config/)

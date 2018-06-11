@@ -1,3 +1,4 @@
+#include <unistd.h>
 #include "lima/CtControl.h"
 #include "lima/CtSaving.h"
 #include "lima/CtAcquisition.h"
@@ -25,7 +26,7 @@ int main()
       //DebParams::setTypeFlags(DebParams::AllFlags);
       //DebParams::setFormatFlags(DebParams::AllFlags);
 
-      string path = "/users/blissadm/local/maxipix/tpxatl25/";
+      string path = "config/";
       string filename = "tpxatl25";
 
       m_camera = new Camera(0, path, filename, true);
@@ -56,23 +57,28 @@ int main()
       saving->setPrefix("maxipix_");
       saving->setSuffix(".edf");
       saving->setSavingMode(CtSaving::AutoFrame);
-      //saving->setOverwritePolicy(CtSaving::Append);
+      saving->setOverwritePolicy(CtSaving::Overwrite);
 
       // do acquisition
-      m_control->acquisition()->setAcqExpoTime(2.0);
+      cout << "Will acquire 10 frames 1 sec. exposure and save in EDF format, overwrite mode and single file maxipix_0000.edf" << endl;
+      m_control->acquisition()->setAcqExpoTime(1.0);
       m_control->acquisition()->setLatencyTime(0.01);
       m_control->acquisition()->setAcqNbFrames(nframes);
       m_control->prepareAcq();
       m_control->startAcq();
+      CtControl::ImageStatus im_status;
       while(1) {
-	cout << "sleeping ...." <<  endl;
+        m_control->getImageStatus(im_status);
+        cout << "Acquired " << im_status.LastImageAcquired+1 <<  " Saved  " << im_status.LastImageSaved+1 << "\r";
+	cout.flush();
 	sleep(1);
-	if (!m_camera->isAcqRunning())
+	if (im_status.LastImageSaved == 9)
 	  break;
       }
-      sleep(5); //all done!
+      cout << "Acquired " << im_status.LastImageAcquired+1 <<  " Saved  " << im_status.LastImageSaved+1 << endl;
+      cout << ">>>>> Done ! <<<<<" << endl;
       delete m_control;
-	delete m_interface;
-	delete m_camera;
+      delete m_interface;
+      delete m_camera;
       return(1);
 }

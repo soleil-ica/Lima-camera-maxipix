@@ -2,7 +2,7 @@
 # python version
 #from Lima.Maxipix.MpxAcq import MpxAcq
 #C++ version
-from Lima.Maxipix import Maxipix
+from Lima import Maxipix
 from Lima.Core import DebParams
 from Lima import Core
 import time
@@ -13,16 +13,7 @@ import time
 
 #DebParams.setModuleFlags(Ac0xffffb7)
 
-
-# this was for python version
-#mpx = MpxAcq(0); 
-#p = mpx.getPriamAcq()
-#mpx.setPath('/users/blissadm/local/maxipix/tpxatl25')
-#mpx.loadConfig('tpxatl25')
-#hwint = mpx.getInterface()
-
-# this is with C++ version
-cam = Maxipix.Camera(0,'/users/blissadm/local/maxipix/tpxatl25', 'tpxatl25', True)
+cam = Maxipix.Camera(0,'config', 'tpxatl25', True)
 hwint = Maxipix.Interface(cam)
   
 control = Core.CtControl(hwint)

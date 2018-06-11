@@ -11,44 +11,28 @@ MAXIPIX is a high spatial resolution (small pixels), high frame rate, photon-cou
 
 We provide today Maxipix 5x1, 4x1 and 1x1 formats based on both TIMEPIX and MEDIPIX2 ASICs.
 
-Beamlines are equiped with the detector, Espia card  and  a specific computer running centOS 5 x86_64.
+Beamlines are equiped with the detector, Espia card and a specific computer running centOS 5 x86_64.
 
 Installation & Module configuration
 ````````````````````````````````````
 
-Maxipix python module need at least the lima core module.
-
--  follow first the steps for the linux installation :ref:`linux_installation`
-
-The minimum configuration file is *config.inc* :
+Follow the generic instructions in :ref:`build_installation`. If using CMake directly, add the following flag:
 
 .. code-block:: sh
 
-  COMPILE_CORE=1
-  COMPILE_SIMULATOR=0
-  COMPILE_SPS_IMAGE=1
-  COMPILE_ESPIA=1
-  COMPILE_FRELON=0
-  COMPILE_MAXIPIX=1
-  COMPILE_PILATUS=0
-  COMPILE_CBF_SAVING=0
-  export COMPILE_CORE COMPILE_SPS_IMAGE COMPILE_SIMULATOR \
-         COMPILE_ESPIA COMPILE_FRELON COMPILE_MAXIPIX COMPILE_PILATUS \
-         COMPILE_CBF_SAVING
+ -DLIMACAMERA_MAXIPIX=true
 
--  start the compilation :ref:`linux_compilation`
-
--  finally for the Tango server installation :ref:`tango_installation`
-
+For the Tango server installation, refers to :ref:`tango_installation`.
 
 Initialisation and Capabilities
 ````````````````````````````````
 
+Implementing a new plugin for new detector is driven by the LIMA framework but the developer has some freedoms to choose which standard and specific features will be made available. This section is supposed to give you the correct information regarding how the camera is exported within the LIMA framework.
+
 Camera initialisation
 ......................
 
-The camera will be initialized   within the Maxipix::Camera  class.  Camera contructor
-aims to load the configuration and calibration data to the detector backend electronic (Priam card).
+The camera will be initialized within the :cpp:class:`Maxipix::Camera`  class. Camera contructor aims to load the configuration and calibration data to the detector backend electronic (Priam card).
 
 There are so many hardware parameters you can set, but refer to the maxipix documentation for a good pratice.
 
@@ -64,25 +48,24 @@ There are so many hardware parameters you can set, but refer to the maxipix docu
 Std capabilites
 ................
 
-This plugin has been implement in respect of the mandatory capabilites but with some limitations which
-are due to the camera.  We only provide here extra information for a better understanding
+This plugin has been implemented in respect of the mandatory capabilites but with some limitations which are due to the camera. We only provide here extra information for a better understanding
 of the capabilities for Maxipix cameras.
 
 * HwDetInfo
-  
-  getCurrImageType/getDefImageType(): always 16bpp. 
+
+  getCurrImageType/getDefImageType(): always 16bpp.
 
   setCurrImageType(): this method do not change the image type which is fixed to 16bpp.
 
 * HwSync
 
   get/setTrigMode():  supported modes are IntTrig, IntTrigMult,ExtTrigSingle, ExtTrigMult and ExtGate.
-  
+
 
 Optional capabilites
 ........................
 In addition to the standard capabilities, we make the choice to implement some optional capabilities which
-are supported  by this detector. A Shutter control.
+are supported by this detector. A Shutter control.
 
 * HwShutter
 
@@ -91,11 +74,12 @@ are supported  by this detector. A Shutter control.
 Configuration
 `````````````
 
- - Only provided configuration files (.cfg and .bpc) must be used for your detector, you do not must change those file. Each detector has its own set of files. Please contact ESRF Detector group for help.
+Only provided configuration files (``.cfg`` and ``.bpc``) must be used for your detector, you must not change those files. Each detector has its own set of files. Please contact ESRF Detector group for help.
 
 How to use
 ````````````
-This is a python code example for a simple test:
+
+This is a python code example of a simple acquisition:
 
 .. code-block:: python
 
@@ -121,7 +105,7 @@ This is a python code example for a simple test:
   hwint.setEnergyThreshold(10.0)
   hwint.setFillMode(cam.DISPATCH)
   hwint.setShutterLevel(cam.HIGH_RISE)
-  
+
 
   # setting new file parameters and autosaving mode
   saving=ct.saving()
@@ -150,8 +134,8 @@ This is a python code example for a simple test:
 
   # now ask for 2 sec. exposure and 10 frames
   acq.setAcqExpoTime(2)
-  acq.setNbImages(10) 
-  
+  acq.setNbImages(10)
+
   ct.prepareAcq()
   ct.startAcq()
 
@@ -160,7 +144,6 @@ This is a python code example for a simple test:
   while lastimg !=9:
     time.sleep(1)
     lastimg = ct.getStatus().ImageCounters.LastImageReady
- 
+
   # read the first image
   im0 = ct.ReadImage(0)
-

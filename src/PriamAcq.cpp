@@ -20,6 +20,7 @@
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //###########################################################################
 #include <cmath>
+#include "MpxCommon.h"
 #include "PriamAcq.h"
 
 using namespace std;
