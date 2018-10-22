@@ -9,7 +9,7 @@
 
     <groupId>fr.soleil.lib.Lima.Camera</groupId>
     <artifactId>LimaMaxipix-amd64-Linux-gcc-shared-${mode}</artifactId>
-    <version>1.0.1</version>
+    <version>1.0.2</version>
 
     <packaging>nar</packaging>
     <name>LimaMaxipix</name>
